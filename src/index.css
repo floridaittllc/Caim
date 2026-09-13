@@ -1,0 +1,261 @@
+:root {
+  color-scheme: dark;
+  --ink: #0a0b0d;
+  --panel: #14171c;
+  --panel-2: #1b1f27;
+  --key: #262b35;
+  --key-top: #303744;
+  --key-press: #1a1e26;
+  --line: rgba(232, 214, 176, 0.12);
+  --gold: #d4a054;
+  --gold-2: #f0d19a;
+  --paper: #f4efe4;
+  --muted: #9aa1ad;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(212, 160, 84, 0.12), transparent 55%),
+    var(--ink);
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+.shell {
+  width: min(920px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 36px 0 48px;
+  display: grid;
+  gap: 18px;
+}
+
+.masthead h1 {
+  font-family: Fraunces, ui-serif, Georgia, serif;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--gold);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.lede {
+  margin: 10px 0 0;
+  color: var(--muted);
+  max-width: 42rem;
+  line-height: 1.5;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mode-switch,
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.chip,
+.text-btn {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--paper);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.chip.is-on {
+  background: var(--gold);
+  color: #1a1206;
+  border-color: transparent;
+}
+
+.text-btn:hover,
+.chip:hover {
+  border-color: rgba(212, 160, 84, 0.4);
+}
+
+.composer {
+  display: grid;
+  gap: 8px;
+}
+
+.composer-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.composer-field {
+  width: 100%;
+  resize: vertical;
+  min-height: 52px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--paper);
+  border-radius: 16px;
+  padding: 16px 18px;
+  line-height: 1.45;
+  box-shadow: var(--shadow);
+}
+
+.composer-field:focus {
+  outline: 2px solid rgba(212, 160, 84, 0.55);
+  outline-offset: 2px;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.2em;
+  color: var(--gold-2);
+  font-size: 0.92rem;
+}
+
+.status.muted {
+  color: var(--muted);
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: linear-gradient(180deg, var(--panel-2), #12151a);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.keyboard-qwerty .keyboard-row:nth-child(2) {
+  padding-inline: 18px;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.key {
+  position: relative;
+  min-width: 0;
+  height: 52px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--key-top), var(--key));
+  color: var(--paper);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 3px 0 #0d0f13,
+    0 8px 16px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.key-label {
+  display: block;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.key-special .key-label,
+.key-space .key-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold-2);
+}
+
+.key-glyph .key-label {
+  font-size: 1.05rem;
+}
+
+.key-nub {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(244, 239, 228, 0.35);
+  transform: translateX(-50%);
+}
+
+.key:hover {
+  filter: brightness(1.08);
+}
+
+.key:active,
+.key.is-active {
+  transform: translateY(2px);
+  background: var(--key-press);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 1px 0 #0d0f13;
+}
+
+.key.is-active .key-label {
+  color: var(--gold);
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(100% - 16px, 920px);
+    padding-top: 20px;
+  }
+
+  .key {
+    height: 46px;
+    border-radius: 8px;
+  }
+
+  .key-glyph .key-label {
+    font-size: 0.95rem;
+  }
+
+  .key-special .key-label,
+  .key-space .key-label {
+    font-size: 0.68rem;
+  }
+}
+
+@media (min-width: 860px) {
+  .key {
+    height: 58px;
+  }
+}
