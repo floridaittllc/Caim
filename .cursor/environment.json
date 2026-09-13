@@ -1,0 +1,5 @@
+{
+  "name": "CAIm (Swift / GrammarKit)",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh"
+}
