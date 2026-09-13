@@ -1,0 +1,18 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+
+# XcodeGen generated project (regenerate with `xcodegen generate`)
+CAImKeyboard.xcodeproj/
+
+# macOS
+.DS_Store
