@@ -147,6 +147,15 @@ textarea {
   color: var(--muted);
 }
 
+.status.banner {
+  background: rgba(212, 160, 84, 0.14);
+  border: 1px solid rgba(212, 160, 84, 0.35);
+  color: var(--gold-2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
 .keyboard {
   display: flex;
   flex-direction: column;

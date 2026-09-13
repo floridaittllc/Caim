@@ -7,17 +7,12 @@ import type { KeyDef } from "./keyboard/types";
 export function App() {
   const { state, rows, pressKey, dispatch } = useKeyboard();
   const [copied, setCopied] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   const onPress = useCallback(
     (key: KeyDef) => {
-      if (key.kind === "special" && key.id === "enter" && state.mode === "pin") {
-        setSubmitted(true);
-        window.setTimeout(() => setSubmitted(false), 1600);
-      }
       pressKey(key);
     },
-    [pressKey, state.mode],
+    [pressKey],
   );
 
   const onDoublePress = useCallback(
@@ -90,8 +85,8 @@ export function App() {
         onReplace={(value, cursor) => dispatch({ type: "replace", value, cursor })}
       />
 
-      {submitted ? (
-        <p className="status" data-testid="pin-submitted" role="status">
+      {state.pinCaptured ? (
+        <p className="status banner" data-testid="pin-submitted" role="status">
           PIN captured ({state.value.length} digits)
         </p>
       ) : (

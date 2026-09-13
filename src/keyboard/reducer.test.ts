@@ -79,6 +79,27 @@ describe("reduceKeyboard", () => {
     expect(next.mode).toBe("pin");
   });
 
+  it("keeps qwerty and PIN buffers separate", () => {
+    const typed = apply(INITIAL_STATE, { type: "insert", char: "Ca" }, { type: "setMode", mode: "pin" });
+    expect(typed.value).toBe("");
+    const pin = apply(typed, { type: "insert", char: "1" }, { type: "insert", char: "2" });
+    expect(pin.value).toBe("12");
+    const back = reduceKeyboard(pin, { type: "setMode", mode: "qwerty" });
+    expect(back.value).toBe("Ca");
+    expect(back.buffers.pin.value).toBe("12");
+  });
+
+  it("marks a PIN as captured on enter without changing digits", () => {
+    const pin = apply(
+      INITIAL_STATE,
+      { type: "setMode", mode: "pin" },
+      { type: "insert", char: "1" },
+      { type: "enter" },
+    );
+    expect(pin.value).toBe("1");
+    expect(pin.pinCaptured).toBe(true);
+  });
+
   it("clamps the cursor to the value length", () => {
     const next = apply(INITIAL_STATE, { type: "insert", char: "ab" }, { type: "setCursor", cursor: 99 });
     expect(next.cursor).toBe(2);

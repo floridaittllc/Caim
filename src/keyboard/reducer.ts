@@ -1,4 +1,6 @@
-import type { KeyboardAction, KeyboardState } from "./types";
+import type { KeyboardAction, KeyboardState, ModeBuffer } from "./types";
+
+const EMPTY_BUFFER: ModeBuffer = { value: "", cursor: 0 };
 
 export const INITIAL_STATE: KeyboardState = {
   value: "",
@@ -7,20 +9,43 @@ export const INITIAL_STATE: KeyboardState = {
   capsLock: false,
   layer: "letters",
   mode: "qwerty",
+  buffers: {
+    qwerty: { ...EMPTY_BUFFER },
+    pin: { ...EMPTY_BUFFER },
+  },
+  pinCaptured: false,
 };
-
-function insertAtCursor(state: KeyboardState, text: string): KeyboardState {
-  const next = state.value.slice(0, state.cursor) + text + state.value.slice(state.cursor);
-  return {
-    ...state,
-    value: next,
-    cursor: state.cursor + text.length,
-    shift: false,
-  };
-}
 
 function clampCursor(value: string, cursor: number): number {
   return Math.max(0, Math.min(cursor, value.length));
+}
+
+function commit(
+  state: KeyboardState,
+  patch: Partial<KeyboardState> & { value?: string; cursor?: number },
+): KeyboardState {
+  const value = patch.value ?? state.value;
+  const cursor = clampCursor(value, patch.cursor ?? state.cursor);
+  return {
+    ...state,
+    ...patch,
+    value,
+    cursor,
+    buffers: {
+      ...state.buffers,
+      [state.mode]: { value, cursor },
+    },
+  };
+}
+
+function insertAtCursor(state: KeyboardState, text: string): KeyboardState {
+  const next = state.value.slice(0, state.cursor) + text + state.value.slice(state.cursor);
+  return commit(state, {
+    value: next,
+    cursor: state.cursor + text.length,
+    shift: false,
+    pinCaptured: false,
+  });
 }
 
 function assertNever(value: never): never {
@@ -46,7 +71,7 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       return insertAtCursor(state, "\t");
     case "enter":
       if (state.mode === "pin") {
-        return { ...state, shift: false };
+        return { ...state, shift: false, pinCaptured: true };
       }
       return insertAtCursor(state, "\n");
     case "backspace": {
@@ -55,12 +80,12 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       }
       const next =
         state.value.slice(0, state.cursor - 1) + state.value.slice(state.cursor);
-      return {
-        ...state,
+      return commit(state, {
         value: next,
         cursor: state.cursor - 1,
         shift: false,
-      };
+        pinCaptured: false,
+      });
     }
     case "toggleShift":
       return { ...state, shift: !state.shift };
@@ -68,26 +93,37 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       return { ...state, capsLock: !state.capsLock, shift: false };
     case "setLayer":
       return { ...state, layer: action.layer, shift: false };
-    case "setMode":
+    case "setMode": {
+      if (action.mode === state.mode) {
+        return { ...state, layer: "letters", shift: false, capsLock: false };
+      }
+      const buffers = {
+        ...state.buffers,
+        [state.mode]: { value: state.value, cursor: state.cursor },
+      };
+      const incoming = buffers[action.mode];
       return {
         ...state,
         mode: action.mode,
+        value: incoming.value,
+        cursor: incoming.cursor,
+        buffers,
         layer: "letters",
         shift: false,
         capsLock: false,
-      };
-    case "setCursor":
-      return { ...state, cursor: clampCursor(state.value, action.cursor) };
-    case "replace": {
-      const value = action.value;
-      return {
-        ...state,
-        value,
-        cursor: clampCursor(value, action.cursor),
+        pinCaptured: false,
       };
     }
+    case "setCursor":
+      return commit(state, { cursor: action.cursor });
+    case "replace":
+      return commit(state, {
+        value: action.value,
+        cursor: action.cursor,
+        pinCaptured: false,
+      });
     case "clear":
-      return { ...state, value: "", cursor: 0, shift: false };
+      return commit(state, { value: "", cursor: 0, shift: false, pinCaptured: false });
     default:
       return assertNever(action);
   }

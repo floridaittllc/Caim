@@ -35,6 +35,11 @@ export type KeyDef = CharKeyDef | SpecialKeyDef;
 
 export type KeyboardRow = KeyDef[];
 
+export type ModeBuffer = {
+  value: string;
+  cursor: number;
+};
+
 export type KeyboardState = {
   value: string;
   cursor: number;
@@ -42,6 +47,8 @@ export type KeyboardState = {
   capsLock: boolean;
   layer: Layer;
   mode: KeyboardMode;
+  buffers: Record<KeyboardMode, ModeBuffer>;
+  pinCaptured: boolean;
 };
 
 export type KeyboardAction =
