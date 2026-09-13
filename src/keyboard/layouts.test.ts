@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { LETTER_ROWS, NUMBER_ROWS, PIN_ROWS, rowsFor } from "./layouts";
+import { FULL_ROWS, NUMBER_ROW_SHIFT, PIN_ROWS, rowsFor } from "./layouts";
 import { physicalKeyToAction, specialAction } from "./useKeyboard";
 import { INITIAL_STATE } from "./reducer";
+import type { SpecialKeyId } from "./types";
 
-function charPrimaries(rows: typeof LETTER_ROWS): string {
+function charPrimaries(rows: typeof FULL_ROWS): string {
   return rows
     .flat()
     .filter((key) => key.kind === "char")
@@ -11,29 +12,61 @@ function charPrimaries(rows: typeof LETTER_ROWS): string {
     .join("");
 }
 
+function specialIds(rows: typeof FULL_ROWS): SpecialKeyId[] {
+  return rows
+    .flat()
+    .filter((key) => key.kind === "special")
+    .map((key) => key.id);
+}
+
 describe("layouts", () => {
-  it("includes every letter plus comma and period on the letter layer", () => {
-    const letters = charPrimaries(LETTER_ROWS);
-    expect(letters).toContain("qwertyuiopasdfghjklzxcvbnm");
+  it("exposes a hardware number row with shifted punctuation always visible", () => {
+    const numberRow = FULL_ROWS[0].filter((key) => key.kind === "char");
+    expect(numberRow.map((key) => [key.primary, key.shifted])).toEqual([...NUMBER_ROW_SHIFT]);
+  });
+
+  it("puts letters and row punctuation on a single board", () => {
+    const letters = charPrimaries(FULL_ROWS);
+    for (const glyph of "qwertyuiopasdfghjklzxcvbnm") {
+      expect(letters).toContain(glyph);
+    }
     expect(letters).toContain(",");
     expect(letters).toContain(".");
+    expect(letters).toContain("/");
+    expect(letters).toContain(";");
+    expect(letters).toContain("'");
+    expect(letters).toContain("[");
+    expect(letters).toContain("]");
+    expect(letters).toContain("\\");
   });
 
-  it("keeps tab on the numbers layer with home and end", () => {
-    const ids = NUMBER_ROWS.flat()
-      .filter((key) => key.kind === "special")
-      .map((key) => key.id);
-    expect(ids).toContain("tab");
-    expect(ids).toContain("home");
-    expect(ids).toContain("end");
-    expect(ids).toContain("shift");
-  });
-
-  it("maps number keys to shifted punctuation", () => {
-    const top = NUMBER_ROWS[0];
-    expect(top[0]).toMatchObject({ primary: "1", shifted: "!" });
-    expect(top[1]).toMatchObject({ primary: "2", shifted: "@" });
-    expect(top[9]).toMatchObject({ primary: "0", shifted: ")" });
+  it("includes hardware modifiers, enter, tab, caps, and a nav cluster", () => {
+    const ids = specialIds(FULL_ROWS);
+    expect(ids).toEqual(expect.arrayContaining([
+      "escape",
+      "tab",
+      "caps",
+      "shift-left",
+      "shift-right",
+      "ctrl-left",
+      "ctrl-right",
+      "alt-left",
+      "alt-right",
+      "meta-left",
+      "meta-right",
+      "enter",
+      "backspace",
+      "left",
+      "right",
+      "up",
+      "down",
+      "home",
+      "end",
+    ]));
+    const labels = FULL_ROWS.flat().map((key) => (key.kind === "special" ? key.label : key.primary));
+    expect(labels).not.toContain("123");
+    expect(labels).not.toContain("#+=");
+    expect(labels).not.toContain("ABC");
   });
 
   it("returns a 3x3 PIN pad plus zero, clear, delete, and enter", () => {
@@ -55,27 +88,35 @@ describe("layouts", () => {
     ]);
   });
 
-  it("switches qwerty layers without changing PIN rows", () => {
-    expect(rowsFor("pin", "symbols")).toBe(PIN_ROWS);
-    expect(rowsFor("qwerty", "numbers")[0][0]).toMatchObject({ primary: "1" });
+  it("switches between the full board and PIN without layer rows", () => {
+    expect(rowsFor("pin")).toBe(PIN_ROWS);
+    expect(rowsFor("qwerty")).toBe(FULL_ROWS);
+    expect(rowsFor("qwerty")[0].some((key) => key.kind === "char" && key.primary === "1")).toBe(true);
   });
 });
 
 describe("key mapping", () => {
   it("maps special keys to reducer actions exhaustively", () => {
-    expect(specialAction("shift")).toEqual({ type: "toggleShift" });
+    expect(specialAction("shift-left")).toEqual({ type: "toggleShift" });
+    expect(specialAction("shift-right")).toEqual({ type: "toggleShift" });
     expect(specialAction("caps")).toEqual({ type: "toggleCaps" });
     expect(specialAction("backspace")).toEqual({ type: "backspace" });
     expect(specialAction("enter")).toEqual({ type: "enter" });
     expect(specialAction("space")).toEqual({ type: "space" });
     expect(specialAction("tab")).toEqual({ type: "tab" });
+    expect(specialAction("escape")).toEqual({ type: "releaseModifiers" });
     expect(specialAction("left")).toEqual({ type: "nudge", delta: -1 });
     expect(specialAction("right")).toEqual({ type: "nudge", delta: 1 });
+    expect(specialAction("up")).toEqual({ type: "nudgeLine", delta: -1 });
+    expect(specialAction("down")).toEqual({ type: "nudgeLine", delta: 1 });
     expect(specialAction("home")).toEqual({ type: "jump", to: "start" });
     expect(specialAction("end")).toEqual({ type: "jump", to: "end" });
-    expect(specialAction("layer-letters")).toEqual({ type: "setLayer", layer: "letters" });
-    expect(specialAction("layer-numbers")).toEqual({ type: "setLayer", layer: "numbers" });
-    expect(specialAction("layer-symbols")).toEqual({ type: "setLayer", layer: "symbols" });
+    expect(specialAction("ctrl-left")).toEqual({ type: "toggleModifier", modifier: "ctrl" });
+    expect(specialAction("ctrl-right")).toEqual({ type: "toggleModifier", modifier: "ctrl" });
+    expect(specialAction("alt-left")).toEqual({ type: "toggleModifier", modifier: "alt" });
+    expect(specialAction("alt-right")).toEqual({ type: "toggleModifier", modifier: "alt" });
+    expect(specialAction("meta-left")).toEqual({ type: "toggleModifier", modifier: "meta" });
+    expect(specialAction("meta-right")).toEqual({ type: "toggleModifier", modifier: "meta" });
     expect(specialAction("mode-qwerty")).toEqual({ type: "setMode", mode: "qwerty" });
     expect(specialAction("mode-pin")).toEqual({ type: "setMode", mode: "pin" });
     expect(specialAction("clear")).toEqual({ type: "clear" });
@@ -94,6 +135,9 @@ describe("key mapping", () => {
     const shift = new KeyboardEvent("keydown", { key: "Shift" });
     expect(physicalKeyToAction(shift, INITIAL_STATE)).toBeNull();
 
+    const caps = new KeyboardEvent("keydown", { key: "CapsLock" });
+    expect(physicalKeyToAction(caps, INITIAL_STATE)).toEqual({ type: "toggleCaps" });
+
     const undo = new KeyboardEvent("keydown", { key: "z", ctrlKey: true });
     expect(physicalKeyToAction(undo, INITIAL_STATE)).toEqual({ type: "undo" });
 
@@ -102,5 +146,12 @@ describe("key mapping", () => {
 
     const end = new KeyboardEvent("keydown", { key: "End" });
     expect(physicalKeyToAction(end, INITIAL_STATE)).toEqual({ type: "jump", to: "end" });
+
+    const up = new KeyboardEvent("keydown", { key: "ArrowUp" });
+    expect(physicalKeyToAction(up, INITIAL_STATE)).toEqual({ type: "nudgeLine", delta: -1 });
+
+    const escape = new KeyboardEvent("keydown", { key: "Escape" });
+    expect(physicalKeyToAction(escape, INITIAL_STATE)).toBeNull();
+    expect(physicalKeyToAction(escape, { ...INITIAL_STATE, shift: true })).toEqual({ type: "releaseModifiers" });
   });
 });

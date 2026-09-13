@@ -5,11 +5,9 @@ type KeyboardProps = {
   rows: KeyboardRow[];
   state: KeyboardState;
   onPress: (key: KeyDef) => void;
-  onDoublePress?: (key: KeyDef) => void;
-  onLongPress?: (key: KeyDef) => void;
 };
 
-export function Keyboard({ rows, state, onPress, onDoublePress, onLongPress }: KeyboardProps) {
+export function Keyboard({ rows, state, onPress }: KeyboardProps) {
   const label = state.mode === "pin" ? "PIN keypad" : "On-screen keyboard";
 
   return (
@@ -18,18 +16,13 @@ export function Keyboard({ rows, state, onPress, onDoublePress, onLongPress }: K
       role="group"
       aria-label={label}
       data-testid="keyboard"
+      data-shift={state.shift ? "on" : "off"}
+      data-caps={state.capsLock ? "on" : "off"}
     >
       {rows.map((row, rowIndex) => (
         <div className="keyboard-row" key={`row-${rowIndex}`}>
           {row.map((keyDef) => (
-            <KeyButton
-              key={keyDef.id}
-              keyDef={keyDef}
-              state={state}
-              onPress={onPress}
-              onDoublePress={onDoublePress}
-              onLongPress={onLongPress}
-            />
+            <KeyButton key={keyDef.id} keyDef={keyDef} state={state} onPress={onPress} />
           ))}
         </div>
       ))}

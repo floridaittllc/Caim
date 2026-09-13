@@ -4,10 +4,10 @@ On-screen keyboard for kiosk, tablet, and classroom use. Tap the keys to type, o
 
 ## Layouts
 
-- **Full** — QWERTY with comma and period on the letter layer, shift, caps lock (hold or double-tap shift), caret arrows, numbers, and symbols
-- **Numbers / symbols** — shifted punctuation on number keys (`1!`, `2@`, …). **Tab**, **home**, and **end** live on the 123 layer
-- **PIN** — large keypad with masked digits, isolated from typed text, 8-digit max, enter disabled until a PIN is entered
-- Hold delete, space, or arrows to repeat; double-space inserts a period
+- **Full** — PC-style ANSI board: always-visible number row (`` ` 1 2 3 4 5 6 7 8 9 0 - = ``), dedicated Caps Lock, Tab, Backspace, Enter, left+right Shift/Ctrl/Alt/Win, Escape, and punctuation on the letter rows. No 123 / #+= layers.
+- **PIN** — large numeric pad with masked digits, isolated from typed text, 8-digit max, enter disabled until a PIN is entered
+- Shift latches for the next character (punctuation and case). Caps Lock is its own key and only affects letters.
+- Arrow keys, home, and end move the composer caret; hold delete, space, or arrows to repeat
 - Undo the current mode buffer from the toolbar or Ctrl/Cmd+Z
 - Copy fails gracefully if the clipboard is unavailable
 

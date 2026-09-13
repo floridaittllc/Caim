@@ -65,24 +65,6 @@ export function App() {
     [pressKey, focusComposer],
   );
 
-  const onDoublePress = useCallback(
-    (key: KeyDef) => {
-      if (key.kind === "special" && key.id === "shift") {
-        dispatch({ type: "toggleCaps" });
-      }
-    },
-    [dispatch],
-  );
-
-  const onLongPress = useCallback(
-    (key: KeyDef) => {
-      if (key.kind === "special" && key.id === "shift") {
-        dispatch({ type: "toggleCaps" });
-      }
-    },
-    [dispatch],
-  );
-
   function flashNotice(next: Notice) {
     if (noticeTimer.current !== null) {
       window.clearTimeout(noticeTimer.current);
@@ -123,8 +105,8 @@ export function App() {
         <p className="eyebrow">CAIm</p>
         <h1>Keyboard</h1>
         <p className="lede">
-          Large-key on-screen keyboard for kiosk, tablet, and classroom use. Hold shift for caps lock,
-          or double-tap it. Tab, home, and end live on the 123 layer.
+          Hardware-style on-screen keyboard for kiosk, tablet, and classroom use. Full QWERTY with a
+          number row, dedicated caps lock, and punctuation on the letter keys — no phone layers.
         </p>
       </header>
 
@@ -187,13 +169,7 @@ export function App() {
         {status.text}
       </p>
 
-      <Keyboard
-        rows={rows}
-        state={state}
-        onPress={onPress}
-        onDoublePress={onDoublePress}
-        onLongPress={onLongPress}
-      />
+      <Keyboard rows={rows} state={state} onPress={onPress} />
     </div>
   );
 }

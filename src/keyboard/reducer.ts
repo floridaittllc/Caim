@@ -5,6 +5,7 @@ import {
   type KeyboardAction,
   type KeyboardState,
   type ModeBuffer,
+  type ModifierId,
 } from "./types";
 
 const EMPTY_BUFFER: ModeBuffer = { value: "", cursor: 0 };
@@ -14,7 +15,9 @@ export const INITIAL_STATE: KeyboardState = {
   cursor: 0,
   shift: false,
   capsLock: false,
-  layer: "letters",
+  ctrl: false,
+  alt: false,
+  meta: false,
   mode: "qwerty",
   buffers: {
     qwerty: { ...EMPTY_BUFFER },
@@ -30,6 +33,10 @@ export const INITIAL_STATE: KeyboardState = {
 
 function clampCursor(value: string, cursor: number): number {
   return Math.max(0, Math.min(cursor, value.length));
+}
+
+function releasedModifiers(): Pick<KeyboardState, "shift" | "ctrl" | "alt" | "meta"> {
+  return { shift: false, ctrl: false, alt: false, meta: false };
 }
 
 function commit(
@@ -94,7 +101,7 @@ function insertAtCursor(state: KeyboardState, text: string): KeyboardState {
   return commitText(state, {
     value: next,
     cursor: state.cursor + text.length,
-    shift: false,
+    ...releasedModifiers(),
     pinCaptured: false,
   });
 }
@@ -112,6 +119,68 @@ function jumpCursor(state: KeyboardState, to: JumpTarget): KeyboardState {
   }
 }
 
+function lineBounds(value: string, cursor: number): { start: number; end: number } {
+  const start = value.lastIndexOf("\n", cursor - 1) + 1;
+  const newline = value.indexOf("\n", cursor);
+  const end = newline === -1 ? value.length : newline;
+  return { start, end };
+}
+
+function nudgeLine(state: KeyboardState, delta: number): KeyboardState {
+  const { value, cursor } = state;
+  const current = lineBounds(value, cursor);
+  const column = cursor - current.start;
+
+  if (delta < 0) {
+    if (current.start === 0) {
+      return commit(state, { cursor: 0, lastTextAction: "none" });
+    }
+    const previous = lineBounds(value, current.start - 1);
+    const previousLength = previous.end - previous.start;
+    return commit(state, {
+      cursor: previous.start + Math.min(column, previousLength),
+      lastTextAction: "none",
+    });
+  }
+
+  if (delta > 0) {
+    if (current.end === value.length) {
+      return commit(state, { cursor: value.length, lastTextAction: "none" });
+    }
+    const next = lineBounds(value, current.end + 1);
+    const nextLength = next.end - next.start;
+    return commit(state, {
+      cursor: next.start + Math.min(column, nextLength),
+      lastTextAction: "none",
+    });
+  }
+
+  return state;
+}
+
+function toggleModifier(state: KeyboardState, modifier: ModifierId): KeyboardState {
+  switch (modifier) {
+    case "ctrl":
+      return { ...state, ctrl: !state.ctrl };
+    case "alt":
+      return { ...state, alt: !state.alt };
+    case "meta":
+      return { ...state, meta: !state.meta };
+    default: {
+      const exhaustive: never = modifier;
+      return exhaustive;
+    }
+  }
+}
+
+function resetTransientKeys(state: KeyboardState): KeyboardState {
+  return {
+    ...state,
+    ...releasedModifiers(),
+    capsLock: false,
+  };
+}
+
 function assertNever(value: never): never {
   throw new Error(`Unhandled keyboard action: ${JSON.stringify(value)}`);
 }
@@ -124,16 +193,6 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       if (state.mode === "pin") {
         return state;
       }
-      if (state.value.slice(0, state.cursor).endsWith(" ") && !state.value.slice(0, state.cursor).endsWith(". ")) {
-        const next =
-          state.value.slice(0, state.cursor - 1) + ". " + state.value.slice(state.cursor);
-        return commitText(state, {
-          value: next,
-          cursor: state.cursor + 1,
-          shift: false,
-          pinCaptured: false,
-        });
-      }
       return insertAtCursor(state, " ");
     case "tab":
       if (state.mode === "pin") {
@@ -145,7 +204,7 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
         if (state.value.length === 0) {
           return state;
         }
-        return { ...state, shift: false, pinCaptured: true };
+        return { ...state, ...releasedModifiers(), pinCaptured: true };
       }
       return insertAtCursor(state, "\n");
     case "backspace": {
@@ -159,7 +218,7 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
         {
           value: next,
           cursor: state.cursor - 1,
-          shift: false,
+          ...releasedModifiers(),
           pinCaptured: false,
         },
         "backspace",
@@ -169,11 +228,13 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       return { ...state, shift: !state.shift };
     case "toggleCaps":
       return { ...state, capsLock: !state.capsLock, shift: false };
-    case "setLayer":
-      return { ...state, layer: action.layer };
+    case "toggleModifier":
+      return toggleModifier(state, action.modifier);
+    case "releaseModifiers":
+      return { ...state, ...releasedModifiers() };
     case "setMode": {
       if (action.mode === state.mode) {
-        return { ...state, layer: "letters", shift: false, capsLock: false };
+        return resetTransientKeys(state);
       }
       const buffers = {
         ...state.buffers,
@@ -181,14 +242,11 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       };
       const incoming = buffers[action.mode];
       return {
-        ...state,
+        ...resetTransientKeys(state),
         mode: action.mode,
         value: incoming.value,
         cursor: incoming.cursor,
         buffers,
-        layer: "letters",
-        shift: false,
-        capsLock: false,
         pinCaptured: false,
       };
     }
@@ -196,6 +254,8 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       return commit(state, { cursor: action.cursor, lastTextAction: "none" });
     case "nudge":
       return commit(state, { cursor: state.cursor + action.delta, lastTextAction: "none" });
+    case "nudgeLine":
+      return nudgeLine(state, action.delta);
     case "jump":
       return jumpCursor(state, action.to);
     case "replace":
@@ -209,9 +269,14 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       });
     case "clear":
       if (state.value === "" && state.cursor === 0) {
-        return { ...state, shift: false, pinCaptured: false };
+        return { ...state, ...releasedModifiers(), pinCaptured: false };
       }
-      return commitText(state, { value: "", cursor: 0, shift: false, pinCaptured: false });
+      return commitText(state, {
+        value: "",
+        cursor: 0,
+        ...releasedModifiers(),
+        pinCaptured: false,
+      });
     case "undo": {
       const stack = state.history[state.mode];
       if (stack.length === 0) {

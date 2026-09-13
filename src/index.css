@@ -1,11 +1,14 @@
 :root {
   color-scheme: dark;
-  --ink: #0a0b0d;
-  --panel: #14171c;
-  --panel-2: #1b1f27;
-  --key: #262b35;
-  --key-top: #303744;
-  --key-press: #1a1e26;
+  --ink: #07080a;
+  --panel: #12151b;
+  --panel-2: #161a21;
+  --deck: #0e1116;
+  --key: #2b303a;
+  --key-top: #3a4150;
+  --key-press: #1c2028;
+  --mod: #1f242d;
+  --mod-top: #2a303a;
   --line: rgba(232, 214, 176, 0.12);
   --gold: #d4a054;
   --gold-2: #f0d19a;
@@ -40,11 +43,11 @@ textarea {
 }
 
 .shell {
-  width: min(920px, calc(100% - 32px));
+  width: min(1180px, calc(100% - 28px));
   margin: 0 auto;
-  padding: 36px 0 48px;
+  padding: 32px 0 40px;
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .masthead h1 {
@@ -67,7 +70,7 @@ textarea {
 .lede {
   margin: 10px 0 0;
   color: var(--muted);
-  max-width: 42rem;
+  max-width: 46rem;
   line-height: 1.5;
 }
 
@@ -90,7 +93,7 @@ textarea {
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--paper);
-  border-radius: 999px;
+  border-radius: 6px;
   padding: 8px 14px;
   cursor: pointer;
 }
@@ -141,7 +144,7 @@ textarea {
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--paper);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 16px 18px;
   line-height: 1.45;
   box-shadow: var(--shadow);
@@ -172,7 +175,7 @@ textarea {
   background: rgba(212, 160, 84, 0.14);
   border: 1px solid rgba(212, 160, 84, 0.35);
   color: var(--gold-2);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 10px 14px;
   font-weight: 600;
 }
@@ -180,40 +183,49 @@ textarea {
 .keyboard {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-  background: linear-gradient(180deg, var(--panel-2), #12151a);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  box-shadow: var(--shadow);
+  gap: 7px;
+  padding: 14px 12px 12px;
+  background:
+    linear-gradient(180deg, #1a1f28 0%, var(--deck) 42%, #0b0d11 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.keyboard-qwerty .keyboard-row:nth-child(2) {
-  padding-inline: 18px;
+.keyboard-qwerty {
+  min-width: 980px;
+  overflow-x: auto;
 }
 
 .keyboard-row {
   display: flex;
   gap: 6px;
-  justify-content: center;
+  justify-content: stretch;
 }
 
 .key {
   position: relative;
   min-width: 0;
-  height: 52px;
-  border: 0;
-  border-radius: 10px;
+  height: 54px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 4px;
   background: linear-gradient(180deg, var(--key-top), var(--key));
   color: var(--paper);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    0 3px 0 #0d0f13,
-    0 8px 16px rgba(0, 0, 0, 0.25);
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 3px 0 #0a0c10,
+    0 6px 10px rgba(0, 0, 0, 0.28);
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
+}
+
+.key-special,
+.key-space {
+  background: linear-gradient(180deg, var(--mod-top), var(--mod));
 }
 
 .key-label {
@@ -224,30 +236,71 @@ textarea {
 
 .key-special .key-label,
 .key-space .key-label {
-  font-size: 0.78rem;
-  font-weight: 500;
+  font-size: 0.68rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--gold-2);
 }
 
 .key-glyph .key-label {
-  font-size: 1.05rem;
+  font-size: 0.98rem;
+}
+
+.key-legends {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.05;
+}
+
+.key-legend-shift {
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.key-legend-primary {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.keyboard[data-shift="on"] .key-legend-shift {
+  color: var(--gold-2);
+}
+
+.key[data-key-id="caps"]::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3d4450;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.45);
+}
+
+.key[data-key-id="caps"].is-active::after {
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(212, 160, 84, 0.7);
 }
 
 .key-nub {
   position: absolute;
   left: 50%;
-  bottom: 7px;
-  width: 10px;
+  bottom: 6px;
+  width: 9px;
   height: 2px;
-  border-radius: 2px;
+  border-radius: 1px;
   background: rgba(244, 239, 228, 0.35);
   transform: translateX(-50%);
 }
 
 .key:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.07);
 }
 
 .key:active,
@@ -263,28 +316,40 @@ textarea {
   color: var(--gold);
 }
 
+.keyboard-pin {
+  max-width: 360px;
+  margin-inline: auto;
+  min-width: 0;
+  gap: 10px;
+  padding: 16px;
+}
+
+.keyboard-pin .key {
+  height: 64px;
+  border-radius: 6px;
+}
+
+.keyboard-pin .key-glyph .key-label {
+  font-size: 1.35rem;
+}
+
 @media (max-width: 720px) {
   .shell {
-    width: min(100% - 16px, 920px);
-    padding-top: 20px;
+    width: min(100% - 12px, 1180px);
+    padding-top: 16px;
+    overflow-x: auto;
   }
 
   .key {
-    height: 46px;
-    border-radius: 8px;
+    height: 48px;
   }
 
-  .key-glyph .key-label {
-    font-size: 0.95rem;
-  }
-
-  .key-special .key-label,
-  .key-space .key-label {
-    font-size: 0.68rem;
+  .keyboard-pin .key {
+    height: 56px;
   }
 }
 
-@media (min-width: 860px) {
+@media (min-width: 1100px) {
   .key {
     height: 58px;
   }

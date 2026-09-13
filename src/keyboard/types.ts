@@ -1,21 +1,28 @@
 export type KeyboardMode = "qwerty" | "pin";
 
-export type Layer = "letters" | "numbers" | "symbols";
+export type ModifierId = "ctrl" | "alt" | "meta";
 
 export type SpecialKeyId =
-  | "shift"
+  | "shift-left"
+  | "shift-right"
   | "caps"
   | "backspace"
   | "enter"
   | "space"
   | "tab"
+  | "escape"
   | "left"
   | "right"
+  | "up"
+  | "down"
   | "home"
   | "end"
-  | "layer-letters"
-  | "layer-numbers"
-  | "layer-symbols"
+  | "ctrl-left"
+  | "ctrl-right"
+  | "alt-left"
+  | "alt-right"
+  | "meta-left"
+  | "meta-right"
   | "mode-qwerty"
   | "mode-pin"
   | "clear";
@@ -49,7 +56,9 @@ export type KeyboardState = {
   cursor: number;
   shift: boolean;
   capsLock: boolean;
-  layer: Layer;
+  ctrl: boolean;
+  alt: boolean;
+  meta: boolean;
   mode: KeyboardMode;
   buffers: Record<KeyboardMode, ModeBuffer>;
   history: Record<KeyboardMode, ModeBuffer[]>;
@@ -67,10 +76,12 @@ export type KeyboardAction =
   | { type: "tab" }
   | { type: "toggleShift" }
   | { type: "toggleCaps" }
-  | { type: "setLayer"; layer: Layer }
+  | { type: "toggleModifier"; modifier: ModifierId }
+  | { type: "releaseModifiers" }
   | { type: "setMode"; mode: KeyboardMode }
   | { type: "setCursor"; cursor: number }
   | { type: "nudge"; delta: number }
+  | { type: "nudgeLine"; delta: number }
   | { type: "jump"; to: JumpTarget }
   | { type: "replace"; value: string; cursor: number }
   | { type: "clear" }
@@ -80,16 +91,16 @@ export const MAX_PIN_LENGTH = 8;
 
 export const MAX_HISTORY = 80;
 
-export function isShifted(state: KeyboardState): boolean {
+export function letterIsUppercase(state: KeyboardState): boolean {
   return state.shift !== state.capsLock;
 }
 
 export function displayChar(key: CharKeyDef, state: KeyboardState): string {
-  if (key.shifted && isShifted(state)) {
+  if (key.shifted && state.shift) {
     return key.shifted;
   }
   if (!key.shifted && /[a-z]/i.test(key.primary)) {
-    return isShifted(state) ? key.primary.toUpperCase() : key.primary.toLowerCase();
+    return letterIsUppercase(state) ? key.primary.toUpperCase() : key.primary.toLowerCase();
   }
   return key.primary;
 }
@@ -131,29 +142,135 @@ const GLYPH_NAMES: Record<string, string> = {
   "|": "vertical bar",
   "~": "tilde",
   "`": "backtick",
-  "€": "euro sign",
-  "£": "pound sign",
-  "¥": "yen sign",
-  "•": "bullet",
-  "°": "degree",
-  "§": "section",
-  "©": "copyright",
-  "®": "registered",
-  "™": "trademark",
-  "×": "multiplication sign",
-  "±": "plus-minus",
-  "≠": "not equal",
-  "¿": "inverted question mark",
-  "¡": "inverted exclamation mark",
 };
 
 export function keyAriaLabel(keyDef: KeyDef, state: KeyboardState): string {
   if (keyDef.kind === "special") {
-    if (keyDef.id === "shift") {
-      return state.capsLock ? "caps lock" : "shift";
+    switch (keyDef.id) {
+      case "shift-left":
+        return "left shift";
+      case "shift-right":
+        return "right shift";
+      case "caps":
+        return "caps lock";
+      case "backspace":
+        return "backspace";
+      case "enter":
+        return "enter";
+      case "space":
+        return "space";
+      case "tab":
+        return "tab";
+      case "escape":
+        return "escape";
+      case "left":
+        return "left arrow";
+      case "right":
+        return "right arrow";
+      case "up":
+        return "up arrow";
+      case "down":
+        return "down arrow";
+      case "home":
+        return "home";
+      case "end":
+        return "end";
+      case "ctrl-left":
+        return "left control";
+      case "ctrl-right":
+        return "right control";
+      case "alt-left":
+        return "left alt";
+      case "alt-right":
+        return "right alt";
+      case "meta-left":
+        return "left windows";
+      case "meta-right":
+        return "right windows";
+      case "mode-qwerty":
+        return "full keyboard";
+      case "mode-pin":
+        return "PIN keypad";
+      case "clear":
+        return "clear";
+      default: {
+        const exhaustive: never = keyDef;
+        return exhaustive;
+      }
     }
-    return keyDef.label;
   }
   const glyph = displayChar(keyDef, state);
   return GLYPH_NAMES[glyph] ?? glyph;
+}
+
+export function isToggleKey(id: SpecialKeyId): boolean {
+  switch (id) {
+    case "shift-left":
+    case "shift-right":
+    case "caps":
+    case "ctrl-left":
+    case "ctrl-right":
+    case "alt-left":
+    case "alt-right":
+    case "meta-left":
+    case "meta-right":
+      return true;
+    case "backspace":
+    case "enter":
+    case "space":
+    case "tab":
+    case "escape":
+    case "left":
+    case "right":
+    case "up":
+    case "down":
+    case "home":
+    case "end":
+    case "mode-qwerty":
+    case "mode-pin":
+    case "clear":
+      return false;
+    default: {
+      const exhaustive: never = id;
+      return exhaustive;
+    }
+  }
+}
+
+export function isToggleActive(id: SpecialKeyId, state: KeyboardState): boolean {
+  switch (id) {
+    case "shift-left":
+    case "shift-right":
+      return state.shift;
+    case "caps":
+      return state.capsLock;
+    case "ctrl-left":
+    case "ctrl-right":
+      return state.ctrl;
+    case "alt-left":
+    case "alt-right":
+      return state.alt;
+    case "meta-left":
+    case "meta-right":
+      return state.meta;
+    case "backspace":
+    case "enter":
+    case "space":
+    case "tab":
+    case "escape":
+    case "left":
+    case "right":
+    case "up":
+    case "down":
+    case "home":
+    case "end":
+    case "mode-qwerty":
+    case "mode-pin":
+    case "clear":
+      return false;
+    default: {
+      const exhaustive: never = id;
+      return exhaustive;
+    }
+  }
 }

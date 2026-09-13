@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { INITIAL_STATE, reduceKeyboard } from "./reducer";
-import { displayChar, isKeyDisabled, isShifted, MAX_PIN_LENGTH } from "./types";
+import { displayChar, isKeyDisabled, letterIsUppercase, MAX_PIN_LENGTH } from "./types";
 import type { CharKeyDef, KeyboardState, SpecialKeyDef } from "./types";
 
 function apply(state: KeyboardState, ...actions: Parameters<typeof reduceKeyboard>[1][]): KeyboardState {
@@ -61,10 +61,27 @@ describe("reduceKeyboard", () => {
     expect(next.value).toBe("A");
   });
 
-  it("keeps shift when switching layers so punctuation can stay shifted", () => {
-    const shifted = apply(INITIAL_STATE, { type: "toggleShift" }, { type: "setLayer", layer: "numbers" });
-    expect(shifted.shift).toBe(true);
-    expect(shifted.layer).toBe("numbers");
+  it("releases latched modifiers without touching caps lock", () => {
+    const armed = apply(
+      INITIAL_STATE,
+      { type: "toggleCaps" },
+      { type: "toggleShift" },
+      { type: "toggleModifier", modifier: "ctrl" },
+    );
+    const next = reduceKeyboard(armed, { type: "releaseModifiers" });
+    expect(next.shift).toBe(false);
+    expect(next.ctrl).toBe(false);
+    expect(next.capsLock).toBe(true);
+  });
+
+  it("toggles ctrl, alt, and meta independently", () => {
+    const ctrl = reduceKeyboard(INITIAL_STATE, { type: "toggleModifier", modifier: "ctrl" });
+    expect(ctrl.ctrl).toBe(true);
+    const alt = reduceKeyboard(ctrl, { type: "toggleModifier", modifier: "alt" });
+    expect(alt.alt).toBe(true);
+    expect(alt.ctrl).toBe(true);
+    const meta = reduceKeyboard(alt, { type: "toggleModifier", modifier: "meta" });
+    expect(meta.meta).toBe(true);
   });
 
   it("clears the buffer", () => {
@@ -76,6 +93,17 @@ describe("reduceKeyboard", () => {
   it("inserts space, tab, and newline in qwerty mode", () => {
     const next = apply(INITIAL_STATE, { type: "space" }, { type: "tab" }, { type: "enter" });
     expect(next.value).toBe(" \t\n");
+  });
+
+  it("inserts two spaces instead of converting them to a period", () => {
+    const next = apply(
+      INITIAL_STATE,
+      { type: "insert", char: "hi" },
+      { type: "space" },
+      { type: "space" },
+    );
+    expect(next.value).toBe("hi  ");
+    expect(next.cursor).toBe(4);
   });
 
   it("nudges the cursor without changing text", () => {
@@ -94,24 +122,13 @@ describe("reduceKeyboard", () => {
     expect(end.value).toBe("caim");
   });
 
-  it("turns a second space into a period", () => {
-    const next = apply(
-      INITIAL_STATE,
-      { type: "insert", char: "hi" },
-      { type: "space" },
-      { type: "space" },
-    );
-    expect(next.value).toBe("hi. ");
-    expect(next.cursor).toBe(4);
-  });
-
-  it("does not turn a space after a period-space into another period", () => {
-    const next = apply(
-      INITIAL_STATE,
-      { type: "insert", char: "hi. " },
-      { type: "space" },
-    );
-    expect(next.value).toBe("hi.  ");
+  it("moves the caret between lines with nudgeLine", () => {
+    const seeded = apply(INITIAL_STATE, { type: "insert", char: "ab\ncd" }, { type: "jump", to: "end" });
+    const up = reduceKeyboard(seeded, { type: "nudgeLine", delta: -1 });
+    expect(up.value).toBe("ab\ncd");
+    expect(up.cursor).toBe(2);
+    const down = reduceKeyboard(up, { type: "nudgeLine", delta: 1 });
+    expect(down.cursor).toBe(5);
   });
 
   it("ignores non-digits and whitespace in PIN mode", () => {
@@ -249,12 +266,14 @@ describe("shift display", () => {
     expect(displayChar(letterQ, { ...base, shift: true })).toBe("Q");
     expect(displayChar(letterQ, { ...base, capsLock: true })).toBe("Q");
     expect(displayChar(letterQ, { ...base, shift: true, capsLock: true })).toBe("q");
-    expect(isShifted({ ...base, shift: true, capsLock: true })).toBe(false);
+    expect(letterIsUppercase({ ...base, shift: true, capsLock: true })).toBe(false);
   });
 
-  it("shows shifted punctuation for number keys", () => {
+  it("uses shift for number-row punctuation even when caps lock is on", () => {
     const one: CharKeyDef = { kind: "char", id: "char-1", primary: "1", shifted: "!" };
     expect(displayChar(one, INITIAL_STATE)).toBe("1");
     expect(displayChar(one, { ...INITIAL_STATE, shift: true })).toBe("!");
+    expect(displayChar(one, { ...INITIAL_STATE, capsLock: true })).toBe("1");
+    expect(displayChar(one, { ...INITIAL_STATE, shift: true, capsLock: true })).toBe("!");
   });
 });

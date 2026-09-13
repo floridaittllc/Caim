@@ -6,7 +6,8 @@ import { displayChar } from "./types";
 
 function specialAction(id: SpecialKeyId): KeyboardAction | null {
   switch (id) {
-    case "shift":
+    case "shift-left":
+    case "shift-right":
       return { type: "toggleShift" };
     case "caps":
       return { type: "toggleCaps" };
@@ -18,20 +19,29 @@ function specialAction(id: SpecialKeyId): KeyboardAction | null {
       return { type: "space" };
     case "tab":
       return { type: "tab" };
+    case "escape":
+      return { type: "releaseModifiers" };
     case "left":
       return { type: "nudge", delta: -1 };
     case "right":
       return { type: "nudge", delta: 1 };
+    case "up":
+      return { type: "nudgeLine", delta: -1 };
+    case "down":
+      return { type: "nudgeLine", delta: 1 };
     case "home":
       return { type: "jump", to: "start" };
     case "end":
       return { type: "jump", to: "end" };
-    case "layer-letters":
-      return { type: "setLayer", layer: "letters" };
-    case "layer-numbers":
-      return { type: "setLayer", layer: "numbers" };
-    case "layer-symbols":
-      return { type: "setLayer", layer: "symbols" };
+    case "ctrl-left":
+    case "ctrl-right":
+      return { type: "toggleModifier", modifier: "ctrl" };
+    case "alt-left":
+    case "alt-right":
+      return { type: "toggleModifier", modifier: "alt" };
+    case "meta-left":
+    case "meta-right":
+      return { type: "toggleModifier", modifier: "meta" };
     case "mode-qwerty":
       return { type: "setMode", mode: "qwerty" };
     case "mode-pin":
@@ -87,18 +97,25 @@ function physicalKeyToAction(event: KeyboardEvent, state: KeyboardState): Keyboa
     case " ":
       return { type: "space" };
     case "Shift":
-    case "CapsLock":
       return null;
+    case "CapsLock":
+      return { type: "toggleCaps" };
     case "ArrowLeft":
       return { type: "nudge", delta: -1 };
     case "ArrowRight":
       return { type: "nudge", delta: 1 };
+    case "ArrowUp":
+      return { type: "nudgeLine", delta: -1 };
+    case "ArrowDown":
+      return { type: "nudgeLine", delta: 1 };
     case "Home":
       return { type: "jump", to: "start" };
     case "End":
       return { type: "jump", to: "end" };
     case "Escape":
-      return state.layer === "letters" ? null : { type: "setLayer", layer: "letters" };
+      return state.shift || state.ctrl || state.alt || state.meta
+        ? { type: "releaseModifiers" }
+        : null;
     default:
       if (event.key.length === 1) {
         return { type: "insert", char: event.key };
@@ -110,10 +127,7 @@ function physicalKeyToAction(event: KeyboardEvent, state: KeyboardState): Keyboa
 export function useKeyboard() {
   const [state, dispatch] = useReducer(reduceKeyboard, INITIAL_STATE);
 
-  const rows = useMemo(
-    () => rowsFor(state.mode, state.layer),
-    [state.mode, state.layer],
-  );
+  const rows = useMemo(() => rowsFor(state.mode), [state.mode]);
 
   const pressKey = useCallback((key: KeyDef) => {
     if (key.kind === "char") {
