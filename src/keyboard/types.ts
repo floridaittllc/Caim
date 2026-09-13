@@ -9,6 +9,8 @@ export type SpecialKeyId =
   | "enter"
   | "space"
   | "tab"
+  | "left"
+  | "right"
   | "layer-letters"
   | "layer-numbers"
   | "layer-symbols"
@@ -62,6 +64,7 @@ export type KeyboardAction =
   | { type: "setLayer"; layer: Layer }
   | { type: "setMode"; mode: KeyboardMode }
   | { type: "setCursor"; cursor: number }
+  | { type: "nudge"; delta: number }
   | { type: "replace"; value: string; cursor: number }
   | { type: "clear" };
 

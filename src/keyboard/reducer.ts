@@ -63,6 +63,16 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       if (state.mode === "pin") {
         return state;
       }
+      if (state.value.slice(0, state.cursor).endsWith(" ") && !state.value.slice(0, state.cursor).endsWith(". ")) {
+        const next =
+          state.value.slice(0, state.cursor - 1) + ". " + state.value.slice(state.cursor);
+        return commit(state, {
+          value: next,
+          cursor: state.cursor + 1,
+          shift: false,
+          pinCaptured: false,
+        });
+      }
       return insertAtCursor(state, " ");
     case "tab":
       if (state.mode === "pin") {
@@ -116,6 +126,8 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
     }
     case "setCursor":
       return commit(state, { cursor: action.cursor });
+    case "nudge":
+      return commit(state, { cursor: state.cursor + action.delta });
     case "replace":
       return commit(state, {
         value: action.value,

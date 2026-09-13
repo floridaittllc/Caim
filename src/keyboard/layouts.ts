@@ -28,8 +28,9 @@ export const LETTER_ROWS: KeyboardRow[] = [
   ],
   [
     special("layer-numbers", "123", 1.3),
-    special("tab", "tab", 1.1),
-    special("space", "space", 5),
+    special("left", "←", 1.1),
+    special("space", "space", 4.4),
+    special("right", "→", 1.1),
     special("enter", "return", 1.6),
   ],
 ];

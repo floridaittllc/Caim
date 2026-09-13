@@ -40,7 +40,7 @@ export function App() {
         <p className="eyebrow">CAIm</p>
         <h1>Keyboard</h1>
         <p className="lede">
-          Large-key on-screen keyboard for kiosk, tablet, and classroom use. Double-tap shift for caps lock.
+          Large-key on-screen keyboard for kiosk, tablet, and classroom use. Double-tap shift for caps lock. Hold delete to repeat. Double-space inserts a period.
         </p>
       </header>
 

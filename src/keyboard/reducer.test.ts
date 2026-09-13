@@ -64,6 +64,22 @@ describe("reduceKeyboard", () => {
     expect(next.value).toBe(" \t\n");
   });
 
+  it("nudges the cursor without changing text", () => {
+    const next = apply(INITIAL_STATE, { type: "insert", char: "ab" }, { type: "nudge", delta: -1 });
+    expect(next.value).toBe("ab");
+    expect(next.cursor).toBe(1);
+  });
+
+  it("turns a second space into a period", () => {
+    const next = apply(
+      INITIAL_STATE,
+      { type: "insert", char: "hi" },
+      { type: "space" },
+      { type: "space" },
+    );
+    expect(next.value).toBe("hi. ");
+  });
+
   it("ignores non-digits and whitespace in PIN mode", () => {
     const pin = reduceKeyboard(INITIAL_STATE, { type: "setMode", mode: "pin" });
     const next = apply(

@@ -18,6 +18,10 @@ function specialAction(id: SpecialKeyId): KeyboardAction | null {
       return { type: "space" };
     case "tab":
       return { type: "tab" };
+    case "left":
+      return { type: "nudge", delta: -1 };
+    case "right":
+      return { type: "nudge", delta: 1 };
     case "layer-letters":
       return { type: "setLayer", layer: "letters" };
     case "layer-numbers":

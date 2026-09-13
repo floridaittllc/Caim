@@ -45,6 +45,8 @@ describe("key mapping", () => {
     expect(specialAction("enter")).toEqual({ type: "enter" });
     expect(specialAction("space")).toEqual({ type: "space" });
     expect(specialAction("tab")).toEqual({ type: "tab" });
+    expect(specialAction("left")).toEqual({ type: "nudge", delta: -1 });
+    expect(specialAction("right")).toEqual({ type: "nudge", delta: 1 });
     expect(specialAction("layer-letters")).toEqual({ type: "setLayer", layer: "letters" });
     expect(specialAction("layer-numbers")).toEqual({ type: "setLayer", layer: "numbers" });
     expect(specialAction("layer-symbols")).toEqual({ type: "setLayer", layer: "symbols" });
