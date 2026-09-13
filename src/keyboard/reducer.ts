@@ -25,6 +25,7 @@ export const INITIAL_STATE: KeyboardState = {
     pin: [],
   },
   pinCaptured: false,
+  lastTextAction: "none",
 };
 
 function clampCursor(value: string, cursor: number): number {
@@ -68,12 +69,15 @@ function pushUndo(state: KeyboardState): KeyboardState {
 function commitText(
   state: KeyboardState,
   patch: Partial<KeyboardState> & { value?: string; cursor?: number },
+  edit: KeyboardState["lastTextAction"] = "insert",
 ): KeyboardState {
   const nextValue = patch.value ?? state.value;
   if (nextValue === state.value && (patch.cursor ?? state.cursor) === state.cursor) {
-    return commit(state, patch);
+    return commit(state, { ...patch, lastTextAction: edit });
   }
-  return commit(pushUndo(state), patch);
+  const shouldCoalesce = edit === "backspace" && state.lastTextAction === "backspace";
+  const base = shouldCoalesce ? state : pushUndo(state);
+  return commit(base, { ...patch, lastTextAction: edit });
 }
 
 function insertAtCursor(state: KeyboardState, text: string): KeyboardState {
@@ -98,9 +102,9 @@ function insertAtCursor(state: KeyboardState, text: string): KeyboardState {
 function jumpCursor(state: KeyboardState, to: JumpTarget): KeyboardState {
   switch (to) {
     case "start":
-      return commit(state, { cursor: 0 });
+      return commit(state, { cursor: 0, lastTextAction: "none" });
     case "end":
-      return commit(state, { cursor: state.value.length });
+      return commit(state, { cursor: state.value.length, lastTextAction: "none" });
     default: {
       const exhaustive: never = to;
       return exhaustive;
@@ -150,12 +154,16 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       }
       const next =
         state.value.slice(0, state.cursor - 1) + state.value.slice(state.cursor);
-      return commitText(state, {
-        value: next,
-        cursor: state.cursor - 1,
-        shift: false,
-        pinCaptured: false,
-      });
+      return commitText(
+        state,
+        {
+          value: next,
+          cursor: state.cursor - 1,
+          shift: false,
+          pinCaptured: false,
+        },
+        "backspace",
+      );
     }
     case "toggleShift":
       return { ...state, shift: !state.shift };
@@ -185,9 +193,9 @@ export function reduceKeyboard(state: KeyboardState, action: KeyboardAction): Ke
       };
     }
     case "setCursor":
-      return commit(state, { cursor: action.cursor });
+      return commit(state, { cursor: action.cursor, lastTextAction: "none" });
     case "nudge":
-      return commit(state, { cursor: state.cursor + action.delta });
+      return commit(state, { cursor: state.cursor + action.delta, lastTextAction: "none" });
     case "jump":
       return jumpCursor(state, action.to);
     case "replace":

@@ -54,6 +54,7 @@ export type KeyboardState = {
   buffers: Record<KeyboardMode, ModeBuffer>;
   history: Record<KeyboardMode, ModeBuffer[]>;
   pinCaptured: boolean;
+  lastTextAction: "none" | "insert" | "backspace";
 };
 
 export type JumpTarget = "start" | "end";

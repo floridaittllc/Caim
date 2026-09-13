@@ -197,6 +197,18 @@ describe("reduceKeyboard", () => {
     expect(back.value).toBe("C");
   });
 
+  it("coalesces repeated backspaces into a single undo", () => {
+    const typed = apply(
+      INITIAL_STATE,
+      { type: "insert", char: "cat" },
+      { type: "backspace" },
+      { type: "backspace" },
+    );
+    expect(typed.value).toBe("c");
+    const undone = reduceKeyboard(typed, { type: "undo" });
+    expect(undone.value).toBe("cat");
+  });
+
   it("undoes insert, space, and backspace", () => {
     const typed = apply(INITIAL_STATE, { type: "insert", char: "hi" }, { type: "space" });
     expect(typed.value).toBe("hi ");
