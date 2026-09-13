@@ -1,0 +1,81 @@
+# XcodeGen project spec for the CAIm Grammarly-style keyboard.
+#
+# Regenerate the .xcodeproj with:
+#   cd ios && xcodegen generate
+#
+# Both the host app and the keyboard extension depend on the GrammarKit Swift
+# package that lives one directory up (the same package validated on Linux with
+# `swift test`).
+name: CAImKeyboard
+options:
+  bundleIdPrefix: com.caim
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+
+packages:
+  GrammarKit:
+    # Local package at the repository root (contains Package.swift).
+    path: ..
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1" # iPhone
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  # ---------------------------------------------------------------------------
+  # Host / container application.
+  # ---------------------------------------------------------------------------
+  CAImKeyboard:
+    type: application
+    platform: iOS
+    sources:
+      - path: CAImKeyboard
+    info:
+      path: CAImKeyboard/Info.plist
+      properties:
+        CFBundleDisplayName: CAIm
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.caim.CAImKeyboard
+        GENERATE_INFOPLIST_FILE: NO
+    dependencies:
+      - package: GrammarKit
+      # Embeds the keyboard extension into the host app bundle.
+      - target: KeyboardExtension
+
+  # ---------------------------------------------------------------------------
+  # Custom keyboard extension (UIInputViewController).
+  # ---------------------------------------------------------------------------
+  KeyboardExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: KeyboardExtension
+    info:
+      path: KeyboardExtension/Info.plist
+      properties:
+        CFBundleDisplayName: CAIm Keyboard
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.keyboard-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).KeyboardViewController
+          NSExtensionAttributes:
+            IsASCIICapable: true
+            PrefersRightToLeft: false
+            PrimaryLanguage: en-US
+            # Open access is not required for on-device grammar checking; keep
+            # it off so the keyboard works without extra user permission.
+            RequestsOpenAccess: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.caim.CAImKeyboard.KeyboardExtension
+        GENERATE_INFOPLIST_FILE: NO
+    dependencies:
+      - package: GrammarKit
