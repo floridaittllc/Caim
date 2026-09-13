@@ -1,0 +1,356 @@
+:root {
+  color-scheme: dark;
+  --ink: #07080a;
+  --panel: #12151b;
+  --panel-2: #161a21;
+  --deck: #0e1116;
+  --key: #2b303a;
+  --key-top: #3a4150;
+  --key-press: #1c2028;
+  --mod: #1f242d;
+  --mod-top: #2a303a;
+  --line: rgba(232, 214, 176, 0.12);
+  --gold: #d4a054;
+  --gold-2: #f0d19a;
+  --paper: #f4efe4;
+  --muted: #9aa1ad;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(212, 160, 84, 0.12), transparent 55%),
+    var(--ink);
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+.shell {
+  width: min(1180px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 32px 0 40px;
+  display: grid;
+  gap: 16px;
+}
+
+.masthead h1 {
+  font-family: Fraunces, ui-serif, Georgia, serif;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--gold);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.lede {
+  margin: 10px 0 0;
+  color: var(--muted);
+  max-width: 46rem;
+  line-height: 1.5;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mode-switch,
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.chip,
+.text-btn {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--paper);
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.chip.is-on {
+  background: var(--gold);
+  color: #1a1206;
+  border-color: transparent;
+}
+
+.text-btn:hover,
+.chip:hover {
+  border-color: rgba(212, 160, 84, 0.4);
+}
+
+.chip:focus-visible,
+.text-btn:focus-visible,
+.key:focus-visible,
+.composer-field:focus-visible {
+  outline: 2px solid rgba(212, 160, 84, 0.85);
+  outline-offset: 2px;
+}
+
+.text-btn:disabled,
+.key:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.composer {
+  display: grid;
+  gap: 8px;
+}
+
+.composer-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.composer-field {
+  width: 100%;
+  resize: vertical;
+  min-height: 52px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--paper);
+  border-radius: 8px;
+  padding: 16px 18px;
+  line-height: 1.45;
+  box-shadow: var(--shadow);
+}
+
+.composer-field:focus {
+  outline: 2px solid rgba(212, 160, 84, 0.55);
+  outline-offset: 2px;
+}
+
+.composer-field:focus-visible {
+  outline: 2px solid rgba(212, 160, 84, 0.85);
+  outline-offset: 2px;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.2em;
+  color: var(--gold-2);
+  font-size: 0.92rem;
+}
+
+.status.muted {
+  color: var(--muted);
+}
+
+.status.banner {
+  background: rgba(212, 160, 84, 0.14);
+  border: 1px solid rgba(212, 160, 84, 0.35);
+  color: var(--gold-2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px 12px 12px;
+  background:
+    linear-gradient(180deg, #1a1f28 0%, var(--deck) 42%, #0b0d11 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.keyboard-qwerty {
+  min-width: 980px;
+  overflow-x: auto;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 6px;
+  justify-content: stretch;
+}
+
+.key {
+  position: relative;
+  min-width: 0;
+  height: 54px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--key-top), var(--key));
+  color: var(--paper);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 3px 0 #0a0c10,
+    0 6px 10px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.key-special,
+.key-space {
+  background: linear-gradient(180deg, var(--mod-top), var(--mod));
+}
+
+.key-label {
+  display: block;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.key-special .key-label,
+.key-space .key-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold-2);
+}
+
+.key-glyph .key-label {
+  font-size: 0.98rem;
+}
+
+.key-legends {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.05;
+}
+
+.key-legend-shift {
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.key-legend-primary {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.keyboard[data-shift="on"] .key-legend-shift {
+  color: var(--gold-2);
+}
+
+.key[data-key-id="caps"]::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3d4450;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.45);
+}
+
+.key[data-key-id="caps"].is-active::after {
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(212, 160, 84, 0.7);
+}
+
+.key-nub {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 9px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(244, 239, 228, 0.35);
+  transform: translateX(-50%);
+}
+
+.key:hover {
+  filter: brightness(1.07);
+}
+
+.key:active,
+.key.is-active {
+  transform: translateY(2px);
+  background: var(--key-press);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 1px 0 #0d0f13;
+}
+
+.key.is-active .key-label {
+  color: var(--gold);
+}
+
+.keyboard-pin {
+  max-width: 360px;
+  margin-inline: auto;
+  min-width: 0;
+  gap: 10px;
+  padding: 16px;
+}
+
+.keyboard-pin .key {
+  height: 64px;
+  border-radius: 6px;
+}
+
+.keyboard-pin .key-glyph .key-label {
+  font-size: 1.35rem;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(100% - 12px, 1180px);
+    padding-top: 16px;
+    overflow-x: auto;
+  }
+
+  .key {
+    height: 48px;
+  }
+
+  .keyboard-pin .key {
+    height: 56px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .key {
+    height: 58px;
+  }
+}
