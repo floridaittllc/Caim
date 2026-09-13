@@ -6,9 +6,10 @@ type KeyboardProps = {
   state: KeyboardState;
   onPress: (key: KeyDef) => void;
   onDoublePress?: (key: KeyDef) => void;
+  onLongPress?: (key: KeyDef) => void;
 };
 
-export function Keyboard({ rows, state, onPress, onDoublePress }: KeyboardProps) {
+export function Keyboard({ rows, state, onPress, onDoublePress, onLongPress }: KeyboardProps) {
   const label = state.mode === "pin" ? "PIN keypad" : "On-screen keyboard";
 
   return (
@@ -27,6 +28,7 @@ export function Keyboard({ rows, state, onPress, onDoublePress }: KeyboardProps)
               state={state}
               onPress={onPress}
               onDoublePress={onDoublePress}
+              onLongPress={onLongPress}
             />
           ))}
         </div>

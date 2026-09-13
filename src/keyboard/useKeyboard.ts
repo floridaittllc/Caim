@@ -22,6 +22,10 @@ function specialAction(id: SpecialKeyId): KeyboardAction | null {
       return { type: "nudge", delta: -1 };
     case "right":
       return { type: "nudge", delta: 1 };
+    case "home":
+      return { type: "jump", to: "start" };
+    case "end":
+      return { type: "jump", to: "end" };
     case "layer-letters":
       return { type: "setLayer", layer: "letters" };
     case "layer-numbers":
@@ -41,7 +45,34 @@ function specialAction(id: SpecialKeyId): KeyboardAction | null {
   }
 }
 
+function shouldIgnorePhysicalKey(event: KeyboardEvent): boolean {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  if (target.closest(".toolbar, .masthead")) {
+    return true;
+  }
+  if (target instanceof HTMLButtonElement && !target.closest("[data-testid='keyboard']")) {
+    return true;
+  }
+  if (
+    (event.key === "Enter" || event.key === " ") &&
+    target instanceof HTMLButtonElement
+  ) {
+    return true;
+  }
+  if (event.key === "Tab" && !(target instanceof HTMLTextAreaElement)) {
+    return true;
+  }
+  return false;
+}
+
 function physicalKeyToAction(event: KeyboardEvent, state: KeyboardState): KeyboardAction | null {
+  if ((event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === "z") {
+    return { type: "undo" };
+  }
+
   if (event.metaKey || event.ctrlKey || event.altKey) {
     return null;
   }
@@ -59,9 +90,13 @@ function physicalKeyToAction(event: KeyboardEvent, state: KeyboardState): Keyboa
     case "CapsLock":
       return null;
     case "ArrowLeft":
-      return { type: "setCursor", cursor: state.cursor - 1 };
+      return { type: "nudge", delta: -1 };
     case "ArrowRight":
-      return { type: "setCursor", cursor: state.cursor + 1 };
+      return { type: "nudge", delta: 1 };
+    case "Home":
+      return { type: "jump", to: "start" };
+    case "End":
+      return { type: "jump", to: "end" };
     case "Escape":
       return state.layer === "letters" ? null : { type: "setLayer", layer: "letters" };
     default:
@@ -97,11 +132,7 @@ export function useKeyboard() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target;
-      if (
-        (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) &&
-        !target.readOnly
-      ) {
+      if (shouldIgnorePhysicalKey(event)) {
         return;
       }
       const action = physicalKeyToAction(event, state);
@@ -123,4 +154,4 @@ export function useKeyboard() {
   };
 }
 
-export { specialAction, physicalKeyToAction };
+export { specialAction, physicalKeyToAction, shouldIgnorePhysicalKey };

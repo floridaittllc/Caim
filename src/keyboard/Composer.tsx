@@ -1,22 +1,38 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type Ref } from "react";
 import type { KeyboardState } from "./types";
 
 type ComposerProps = {
   state: KeyboardState;
   onReplace: (value: string, cursor: number) => void;
+  inputRef?: Ref<HTMLTextAreaElement>;
 };
 
-export function Composer({ state, onReplace }: ComposerProps) {
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
+  if (!ref) {
+    return;
+  }
+  if (typeof ref === "function") {
+    ref(value);
+    return;
+  }
+  ref.current = value;
+}
+
+export function Composer({ state, onReplace, inputRef }: ComposerProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const displayValue = state.mode === "pin" ? "•".repeat(state.value.length) : state.value;
 
   useEffect(() => {
     const field = ref.current;
-    if (!field || document.activeElement !== field) {
+    if (!field) {
       return;
     }
     const cursor = Math.min(state.cursor, displayValue.length);
-    field.setSelectionRange(cursor, cursor);
+    try {
+      field.setSelectionRange(cursor, cursor);
+    } catch {
+      // jsdom and some mobile WebViews reject selection updates while unmounted.
+    }
   }, [displayValue, state.cursor]);
 
   return (
@@ -25,24 +41,21 @@ export function Composer({ state, onReplace }: ComposerProps) {
         {state.mode === "pin" ? "PIN" : "Typed text"}
       </span>
       <textarea
-        ref={ref}
+        ref={(node) => {
+          ref.current = node;
+          assignRef(inputRef, node);
+        }}
         className="composer-field"
         data-testid="composer"
         spellCheck={state.mode !== "pin"}
         autoCapitalize="off"
         autoCorrect="off"
+        autoComplete="off"
         rows={state.mode === "pin" ? 1 : 5}
-        readOnly={state.mode === "pin"}
-        inputMode={state.mode === "pin" ? "none" : "text"}
+        readOnly
+        inputMode="none"
+        enterKeyHint="done"
         value={displayValue}
-        onChange={(event) => {
-          if (state.mode === "pin") {
-            const digits = event.target.value.replace(/\D/g, "");
-            onReplace(digits, digits.length);
-            return;
-          }
-          onReplace(event.target.value, event.target.selectionStart ?? event.target.value.length);
-        }}
         onSelect={(event) => {
           const target = event.currentTarget;
           onReplace(state.value, target.selectionStart ?? state.cursor);

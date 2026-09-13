@@ -106,6 +106,22 @@ textarea {
   border-color: rgba(212, 160, 84, 0.4);
 }
 
+.chip:focus-visible,
+.text-btn:focus-visible,
+.key:focus-visible,
+.composer-field:focus-visible {
+  outline: 2px solid rgba(212, 160, 84, 0.85);
+  outline-offset: 2px;
+}
+
+.text-btn:disabled,
+.key:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
 .composer {
   display: grid;
   gap: 8px;
@@ -133,6 +149,11 @@ textarea {
 
 .composer-field:focus {
   outline: 2px solid rgba(212, 160, 84, 0.55);
+  outline-offset: 2px;
+}
+
+.composer-field:focus-visible {
+  outline: 2px solid rgba(212, 160, 84, 0.85);
   outline-offset: 2px;
 }
 

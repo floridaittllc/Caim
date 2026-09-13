@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { INITIAL_STATE, reduceKeyboard } from "./reducer";
-import { displayChar, isShifted } from "./types";
-import type { CharKeyDef, KeyboardState } from "./types";
+import { displayChar, isKeyDisabled, isShifted, MAX_PIN_LENGTH } from "./types";
+import type { CharKeyDef, KeyboardState, SpecialKeyDef } from "./types";
 
 function apply(state: KeyboardState, ...actions: Parameters<typeof reduceKeyboard>[1][]): KeyboardState {
   return actions.reduce((next, action) => reduceKeyboard(next, action), state);
 }
 
 const letterQ: CharKeyDef = { kind: "char", id: "char-q", primary: "q" };
+const pinEnter: SpecialKeyDef = { kind: "special", id: "enter", label: "enter" };
 
 describe("reduceKeyboard", () => {
   it("inserts characters at the cursor and advances it", () => {
@@ -46,11 +47,24 @@ describe("reduceKeyboard", () => {
     expect(next.value).toBe("A");
   });
 
+  it("consumes shift after punctuation as well as letters", () => {
+    const shifted = reduceKeyboard(INITIAL_STATE, { type: "toggleShift" });
+    const next = reduceKeyboard(shifted, { type: "insert", char: "!" });
+    expect(next.shift).toBe(false);
+    expect(next.value).toBe("!");
+  });
+
   it("keeps caps lock on after insert", () => {
     const caps = reduceKeyboard(INITIAL_STATE, { type: "toggleCaps" });
     const next = reduceKeyboard(caps, { type: "insert", char: "A" });
     expect(next.capsLock).toBe(true);
     expect(next.value).toBe("A");
+  });
+
+  it("keeps shift when switching layers so punctuation can stay shifted", () => {
+    const shifted = apply(INITIAL_STATE, { type: "toggleShift" }, { type: "setLayer", layer: "numbers" });
+    expect(shifted.shift).toBe(true);
+    expect(shifted.layer).toBe("numbers");
   });
 
   it("clears the buffer", () => {
@@ -70,6 +84,16 @@ describe("reduceKeyboard", () => {
     expect(next.cursor).toBe(1);
   });
 
+  it("jumps the cursor to the start and end", () => {
+    const seeded = apply(INITIAL_STATE, { type: "insert", char: "caim" }, { type: "nudge", delta: -2 });
+    expect(seeded.cursor).toBe(2);
+    const home = reduceKeyboard(seeded, { type: "jump", to: "start" });
+    expect(home.cursor).toBe(0);
+    const end = reduceKeyboard(home, { type: "jump", to: "end" });
+    expect(end.cursor).toBe(4);
+    expect(end.value).toBe("caim");
+  });
+
   it("turns a second space into a period", () => {
     const next = apply(
       INITIAL_STATE,
@@ -78,6 +102,16 @@ describe("reduceKeyboard", () => {
       { type: "space" },
     );
     expect(next.value).toBe("hi. ");
+    expect(next.cursor).toBe(4);
+  });
+
+  it("does not turn a space after a period-space into another period", () => {
+    const next = apply(
+      INITIAL_STATE,
+      { type: "insert", char: "hi. " },
+      { type: "space" },
+    );
+    expect(next.value).toBe("hi.  ");
   });
 
   it("ignores non-digits and whitespace in PIN mode", () => {
@@ -105,6 +139,21 @@ describe("reduceKeyboard", () => {
     expect(back.buffers.pin.value).toBe("12");
   });
 
+  it("clears only the current mode buffer", () => {
+    const typed = apply(
+      INITIAL_STATE,
+      { type: "insert", char: "hello" },
+      { type: "setMode", mode: "pin" },
+      { type: "insert", char: "1" },
+      { type: "insert", char: "2" },
+      { type: "clear" },
+    );
+    expect(typed.mode).toBe("pin");
+    expect(typed.value).toBe("");
+    const back = reduceKeyboard(typed, { type: "setMode", mode: "qwerty" });
+    expect(back.value).toBe("hello");
+  });
+
   it("marks a PIN as captured on enter without changing digits", () => {
     const pin = apply(
       INITIAL_STATE,
@@ -114,6 +163,52 @@ describe("reduceKeyboard", () => {
     );
     expect(pin.value).toBe("1");
     expect(pin.pinCaptured).toBe(true);
+  });
+
+  it("does not capture an empty PIN", () => {
+    const pin = apply(INITIAL_STATE, { type: "setMode", mode: "pin" }, { type: "enter" });
+    expect(pin.value).toBe("");
+    expect(pin.pinCaptured).toBe(false);
+    expect(isKeyDisabled(pinEnter, pin)).toBe(true);
+  });
+
+  it("rejects PIN digits beyond the max length", () => {
+    let pin = reduceKeyboard(INITIAL_STATE, { type: "setMode", mode: "pin" });
+    for (let digit = 0; digit < MAX_PIN_LENGTH + 3; digit += 1) {
+      pin = reduceKeyboard(pin, { type: "insert", char: String(digit % 10) });
+    }
+    expect(pin.value).toHaveLength(MAX_PIN_LENGTH);
+    expect(pin.value).toBe("01234567");
+  });
+
+  it("undoes the current mode buffer only", () => {
+    const typed = apply(
+      INITIAL_STATE,
+      { type: "insert", char: "C" },
+      { type: "insert", char: "a" },
+      { type: "setMode", mode: "pin" },
+      { type: "insert", char: "1" },
+      { type: "insert", char: "2" },
+      { type: "undo" },
+    );
+    expect(typed.mode).toBe("pin");
+    expect(typed.value).toBe("1");
+    const back = apply(typed, { type: "setMode", mode: "qwerty" }, { type: "undo" });
+    expect(back.value).toBe("C");
+  });
+
+  it("undoes insert, space, and backspace", () => {
+    const typed = apply(INITIAL_STATE, { type: "insert", char: "hi" }, { type: "space" });
+    expect(typed.value).toBe("hi ");
+    const undoneSpace = reduceKeyboard(typed, { type: "undo" });
+    expect(undoneSpace.value).toBe("hi");
+    const gone = reduceKeyboard(undoneSpace, { type: "undo" });
+    expect(gone.value).toBe("");
+  });
+
+  it("does nothing when undo history is empty", () => {
+    const next = reduceKeyboard(INITIAL_STATE, { type: "undo" });
+    expect(next).toEqual(INITIAL_STATE);
   });
 
   it("clamps the cursor to the value length", () => {
@@ -126,6 +221,13 @@ describe("reduceKeyboard", () => {
     expect(next.value).toBe("door");
     expect(next.cursor).toBe(2);
   });
+
+  it("does not record cursor-only replacements in undo history", () => {
+    const seeded = apply(INITIAL_STATE, { type: "insert", char: "ab" }, { type: "replace", value: "ab", cursor: 0 });
+    expect(seeded.cursor).toBe(0);
+    const undone = reduceKeyboard(seeded, { type: "undo" });
+    expect(undone.value).toBe("");
+  });
 });
 
 describe("shift display", () => {
@@ -136,5 +238,11 @@ describe("shift display", () => {
     expect(displayChar(letterQ, { ...base, capsLock: true })).toBe("Q");
     expect(displayChar(letterQ, { ...base, shift: true, capsLock: true })).toBe("q");
     expect(isShifted({ ...base, shift: true, capsLock: true })).toBe(false);
+  });
+
+  it("shows shifted punctuation for number keys", () => {
+    const one: CharKeyDef = { kind: "char", id: "char-1", primary: "1", shifted: "!" };
+    expect(displayChar(one, INITIAL_STATE)).toBe("1");
+    expect(displayChar(one, { ...INITIAL_STATE, shift: true })).toBe("!");
   });
 });
