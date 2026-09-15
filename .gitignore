@@ -1,0 +1,10 @@
+# CAIm / Android
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
