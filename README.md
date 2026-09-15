@@ -1,24 +1,28 @@
-# CAIm
+# CAIm Write
 
-This repository is configured to run in GitHub Codespaces.
+Native Android writing assistant (Grammarly-class) branded **CAIm Write**.
 
-## Getting Started with Codespaces
+## Quick start
 
-1. Click the **Code** button
-2. Select the **Codespaces** tab
-3. Click **Create codespace on main**
+Open the Android project in Android Studio:
 
-Your development environment will be automatically configured and ready to use!
+```text
+android/
+```
 
-## What's Included
+Full docs, feature list, offline vs API behavior, and test commands: **[android/README.md](android/README.md)**.
 
-- Python (latest)
-- Node.js (latest)
-- Git
-- VS Code extensions for Python development
-- GitHub Copilot support
+```bash
+cd android
+./gradlew :write-engine:test   # JVM engine tests (no emulator needed)
+```
 
----
+## Product
 
-Created: 2025-12-24Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): 2025-12-24 08:34:26
-Current User's Login: floridaittllc
+- Real-time spelling, grammar, clarity, engagement suggestions
+- Tone chips + Goals (audience / formality / domain)
+- Six rewrite styles with a premium offline rewrite engine (optional OpenAI)
+- Local draft history (Room), settings, onboarding, share/copy
+- Jetpack Compose UI — light & dark
+
+This repository’s primary product on this branch is **CAIm Write**, not an on-screen keyboard.

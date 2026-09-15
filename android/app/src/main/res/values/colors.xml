@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="caim_ink">#FF1A1F1C</color>
+    <color name="caim_foam">#FFF3F0E8</color>
+    <color name="caim_sea">#FF0F6E56</color>
+    <color name="caim_coral">#FFC45C26</color>
+    <color name="ic_launcher_background">#FF0F6E56</color>
+</resources>
