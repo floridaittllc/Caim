@@ -7,6 +7,7 @@ import com.caim.write.engine.model.EngineSettings
 import com.caim.write.engine.model.SuggestionCategory
 import com.caim.write.engine.model.SuggestionIntensity
 import com.caim.write.engine.model.SuggestionKind
+import com.caim.write.engine.model.TextRange
 import com.caim.write.engine.model.WritingScores
 import com.caim.write.engine.model.WritingSuggestion
 import com.caim.write.engine.spelling.SpellingChecker
