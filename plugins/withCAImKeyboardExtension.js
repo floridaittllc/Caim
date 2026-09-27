@@ -40,6 +40,8 @@ function withCAImKeyboardExtension(config) {
         [
           'CAIm Keyboard Extension sources were copied by withCAImKeyboardExtension.',
           'In Xcode: add a Custom Keyboard Extension target and include these files.',
+          'Add the local Swift package at ../Packages/CAImKeyboardCore to that target.',
+          'The extension imports CAImKeyboardCore for layout, editing, PIN rules, and Grok parsing.',
           'Enable App Group: group.com.caim.keyboard',
           'Info.plist already sets RequestsOpenAccess = true.',
           '',

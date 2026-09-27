@@ -1,7 +1,8 @@
 import Foundation
 import UIKit
+import CAImKeyboardCore
 
-/// Shared Grok client for the keyboard extension.
+/// Keyboard-extension Grok call. Parsing and the HTTP client live in `CAImKeyboardCore`.
 /// Requires Full Access + App Group so the host Expo app can store `XAI_API_KEY`.
 final class GrokKeyboardClient {
     static let shared = GrokKeyboardClient()
@@ -9,7 +10,6 @@ final class GrokKeyboardClient {
     /// App Group id — must match the Expo host app entitlements after prebuild.
     private let appGroupId = "group.com.caim.keyboard"
     private let apiKeyDefaultsKey = "xai_api_key"
-    private let endpoint = URL(string: "https://api.x.ai/v1/chat/completions")!
 
     private init() {}
 
@@ -19,55 +19,30 @@ final class GrokKeyboardClient {
             return
         }
 
-        // Keyboard extensions have limited context; insert a marker then fetch asynchronously.
         let snippet = proxy.documentContextBeforeInput ?? ""
-        let promptText = String(snippet.suffix(280))
-        guard !promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        let promptText = String(snippet.suffix(280)).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !promptText.isEmpty else {
             proxy.insertText(" [CAIm: type some text first] ")
             return
         }
 
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.timeoutInterval = 20
-
-        let body: [String: Any] = [
-            "model": "grok-3",
-            "temperature": 0.3,
-            "messages": [
-                [
-                    "role": "system",
-                    "content": "Return ONLY JSON {\"rewritten\":\"...\"}. Fix grammar briefly.",
-                ],
-                [
-                    "role": "user",
-                    "content": "Rewrite professionally:\n\(promptText)",
-                ],
-            ],
-        ]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
-        URLSession.shared.dataTask(with: request) { data, _, error in
-            DispatchQueue.main.async {
-                if error != nil || data == nil {
-                    proxy.insertText(" [CAIm: Grok unreachable] ")
-                    return
+        let client = GrokRewriteClient(apiKey: apiKey, transport: URLSessionGrokTransport())
+        Task {
+            do {
+                let rewrite = try await client.rewrite(promptText)
+                await MainActor.run {
+                    proxy.insertText(" → \(rewrite.rewritten)")
                 }
-                // Placeholder parse — host app uses structured JSON; extension keeps this minimal.
-                if let json = try? JSONSerialization.jsonObject(with: data!) as? [String: Any],
-                   let choices = json["choices"] as? [[String: Any]],
-                   let message = choices.first?["message"] as? [String: Any],
-                   let content = message["content"] as? String
-                {
-                    let cleaned = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                    proxy.insertText(" → \(cleaned)")
-                } else {
+            } catch is GrokParseError {
+                await MainActor.run {
                     proxy.insertText(" [CAIm: bad Grok response] ")
                 }
+            } catch {
+                await MainActor.run {
+                    proxy.insertText(" [CAIm: Grok unreachable] ")
+                }
             }
-        }.resume()
+        }
     }
 
     private func loadApiKey() -> String? {

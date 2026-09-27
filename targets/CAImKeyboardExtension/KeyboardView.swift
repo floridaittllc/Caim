@@ -1,36 +1,14 @@
 import UIKit
+import CAImKeyboardCore
 
-enum KeyboardAction {
-    case insert(String)
-    case backspace
-    case shift
-    case caps
-    case nextKeyboard
-    case rewrite
-}
-
-/// Hardware-style QWERTY with always-visible number row (not iOS Messages layers).
+/// Renders `KeyboardModel.rows` and asks the controller to run the shared engine.
 final class KeyboardView: UIView {
-    var onKey: ((KeyboardAction) -> Void)?
+    var onKey: ((KeyDef) -> Void)?
 
-    private var shiftOn = false
-    private var capsOn = false
     private let stack = UIStackView()
     private var keyButtons: [UIButton] = []
-
-    private let rows: [[String]] = [
-        ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "⌫"],
-        ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]"],
-        ["caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", "return"],
-        ["shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "/", "shift"],
-        ["🌐", "CAIm", "space", "rewrite"],
-    ]
-
-    private let shiftMap: [String: String] = [
-        "`": "~", "1": "!", "2": "@", "3": "#", "4": "$", "5": "%", "6": "^",
-        "7": "&", "8": "*", "9": "(", "0": ")", "-": "_", "=": "+",
-        "[": "{", "]": "}", ";": ":", "'": "\"", ",": "<", ".": ">", "/": "?",
-    ]
+    private var keysByID: [String: KeyDef] = [:]
+    private var builtSignature = ""
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -44,28 +22,29 @@ final class KeyboardView: UIView {
             stack.topAnchor.constraint(equalTo: topAnchor),
             stack.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
-        rebuild()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func setShift(_ on: Bool) {
-        shiftOn = on
-        refreshLabels()
+    func render(_ model: KeyboardModel) {
+        let signature = model.rows.map { row in
+            row.map(\.id).joined(separator: ",")
+        }.joined(separator: "|")
+        if signature != builtSignature {
+            rebuild(model)
+            builtSignature = signature
+        }
+        refreshLabels(model)
     }
 
-    func setCaps(_ on: Bool) {
-        capsOn = on
-        refreshLabels()
-    }
-
-    private func rebuild() {
+    private func rebuild(_ model: KeyboardModel) {
         stack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         keyButtons.removeAll()
+        keysByID.removeAll()
 
-        for row in rows {
+        for row in model.rows {
             let rowStack = UIStackView()
             rowStack.axis = .horizontal
             rowStack.spacing = 3
@@ -73,68 +52,42 @@ final class KeyboardView: UIView {
 
             for key in row {
                 let button = UIButton(type: .system)
-                button.setTitle(display(for: key), for: .normal)
+                button.setTitle(model.displayLabel(for: key), for: .normal)
                 button.setTitleColor(.white, for: .normal)
                 button.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
-                button.backgroundColor = UIColor(white: 0.22, alpha: 1)
+                button.titleLabel?.adjustsFontSizeToFitWidth = true
+                button.titleLabel?.minimumScaleFactor = 0.6
+                button.backgroundColor = key.special
+                    ? UIColor(white: 0.14, alpha: 1)
+                    : UIColor(white: 0.22, alpha: 1)
                 button.layer.cornerRadius = 5
-                button.accessibilityIdentifier = key
+                button.accessibilityIdentifier = key.id
                 button.addTarget(self, action: #selector(tapped(_:)), for: .touchUpInside)
-                if ["shift", "caps", "⌫", "return", "🌐", "CAIm", "rewrite", "space"].contains(key) {
-                    button.backgroundColor = UIColor(white: 0.14, alpha: 1)
-                }
                 rowStack.addArrangedSubview(button)
                 keyButtons.append(button)
+                keysByID[key.id] = key
             }
             stack.addArrangedSubview(rowStack)
         }
     }
 
-    private func display(for key: String) -> String {
-        switch key {
-        case "space": return "space"
-        case "return": return "return"
-        case "rewrite": return "✦"
-        case "CAIm": return "CAIm"
-        default:
-            if key.count == 1, key.rangeOfCharacter(from: .letters) != nil {
-                let upper = shiftOn != capsOn
-                return upper ? key.uppercased() : key.lowercased()
-            }
-            if shiftOn, let alt = shiftMap[key] {
-                return alt
-            }
-            return key
-        }
-    }
-
-    private func refreshLabels() {
+    private func refreshLabels(_ model: KeyboardModel) {
         for button in keyButtons {
-            guard let key = button.accessibilityIdentifier else { continue }
-            button.setTitle(display(for: key), for: .normal)
+            guard let id = button.accessibilityIdentifier, let key = keysByID[id] else {
+                continue
+            }
+            button.setTitle(model.displayLabel(for: key), for: .normal)
+            let active = (key.action == .shift && model.shiftOn) || (key.action == .caps && model.capsOn)
+            button.backgroundColor = active
+                ? UIColor(red: 0.20, green: 0.45, blue: 0.85, alpha: 1)
+                : (key.special ? UIColor(white: 0.14, alpha: 1) : UIColor(white: 0.22, alpha: 1))
         }
     }
 
     @objc private func tapped(_ sender: UIButton) {
-        guard let key = sender.accessibilityIdentifier else { return }
-        switch key {
-        case "⌫":
-            onKey?(.backspace)
-        case "shift":
-            onKey?(.shift)
-        case "caps":
-            onKey?(.caps)
-        case "return":
-            onKey?(.insert("\n"))
-        case "space":
-            onKey?(.insert(" "))
-        case "🌐":
-            onKey?(.nextKeyboard)
-        case "rewrite", "CAIm":
-            onKey?(.rewrite)
-        default:
-            let text = display(for: key)
-            onKey?(.insert(text))
+        guard let id = sender.accessibilityIdentifier, let key = keysByID[id] else {
+            return
         }
+        onKey?(key)
     }
 }

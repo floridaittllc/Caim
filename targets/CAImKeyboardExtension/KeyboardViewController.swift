@@ -1,11 +1,13 @@
 import UIKit
+import CAImKeyboardCore
 
 /// Custom keyboard entry point. Inserts text via `textDocumentProxy`.
+/// Editing rules come from `CAImKeyboardCore.KeyboardModel` (see `Packages/CAImKeyboardCore`).
+/// `KeyboardEngineAdapter` is the UIKit side of that call and is wrapped in `canImport(UIKit)`.
 /// Full network/Grok calls require Open Access (RequestsOpenAccess) + App Group shared key.
 final class KeyboardViewController: UIInputViewController {
     private var keyboardView: KeyboardView!
-    private var shiftOn = false
-    private var capsOn = false
+    private var model = KeyboardModel()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -13,10 +15,11 @@ final class KeyboardViewController: UIInputViewController {
 
         keyboardView = KeyboardView(frame: .zero)
         keyboardView.translatesAutoresizingMaskIntoConstraints = false
-        keyboardView.onKey = { [weak self] action in
-            self?.handle(action)
+        keyboardView.onKey = { [weak self] key in
+            self?.handle(key)
         }
         view.addSubview(keyboardView)
+        keyboardView.render(model)
 
         NSLayoutConstraint.activate([
             keyboardView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 4),
@@ -27,27 +30,19 @@ final class KeyboardViewController: UIInputViewController {
         ])
     }
 
-    private func handle(_ action: KeyboardAction) {
-        switch action {
-        case .insert(let text):
-            textDocumentProxy.insertText(text)
-            if shiftOn {
-                shiftOn = false
-                keyboardView.setShift(false)
+    private func handle(_ key: KeyDef) {
+        KeyboardEngineAdapter.apply(
+            key: key,
+            model: &model,
+            proxy: textDocumentProxy,
+            onNextKeyboard: { [weak self] in
+                self?.advanceToNextInputMode()
+            },
+            onRewrite: { [weak self] in
+                guard let self else { return }
+                GrokKeyboardClient.shared.rewriteSelectedOrNearby(proxy: self.textDocumentProxy)
             }
-        case .backspace:
-            textDocumentProxy.deleteBackward()
-        case .shift:
-            shiftOn.toggle()
-            keyboardView.setShift(shiftOn)
-        case .caps:
-            capsOn.toggle()
-            keyboardView.setCaps(capsOn)
-        case .nextKeyboard:
-            advanceToNextInputMode()
-        case .rewrite:
-            // Placeholder: call Grok when Open Access + shared App Group API key are available.
-            GrokKeyboardClient.shared.rewriteSelectedOrNearby(proxy: textDocumentProxy)
-        }
+        )
+        keyboardView.render(model)
     }
 }
