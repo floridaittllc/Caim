@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { syncSharedApiKey } from 'caim-app-group';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
@@ -46,13 +47,27 @@ export async function getApiKey(): Promise<string | null> {
   return secureGet(API_KEY_SECURE);
 }
 
+export async function publishStoredApiKeyToKeyboard(): Promise<void> {
+  try {
+    const stored = (await getApiKey())?.trim() ?? '';
+    const env =
+      process.env.EXPO_PUBLIC_XAI_API_KEY?.trim() ||
+      process.env.XAI_API_KEY?.trim() ||
+      '';
+    syncSharedApiKey(stored || env || null);
+  } catch {
+    // SecureStore and the App Group module are absent on web and in Expo Go.
+  }
+}
+
 export async function setApiKey(key: string): Promise<void> {
   const trimmed = key.trim();
   if (!trimmed) {
     await secureDelete(API_KEY_SECURE);
-    return;
+  } else {
+    await secureSet(API_KEY_SECURE, trimmed);
   }
-  await secureSet(API_KEY_SECURE, trimmed);
+  await publishStoredApiKeyToKeyboard();
 }
 
 export async function getPrefs(): Promise<AppPrefs> {

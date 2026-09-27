@@ -51,26 +51,25 @@ Grok client calls `https://api.x.ai/v1/chat/completions` (default model `grok-3`
 - **Rewrite** — Professional / Casual / Shorten / Expand via Grok (+ corrections JSON when returned)
 - **Settings** — API key, Full/PIN default, writing goals, system-keyboard setup notes
 
-## iOS system keyboard UI (Xcode on a Mac)
+## Install on your iPhone
 
-UIKit and the Keyboard Extension SDK ship with Xcode. They are an Apple platform SDK, so `KeyboardViewController` cannot be compiled on Linux. Installing the system keyboard is a device run from Xcode:
+Expo Go cannot register a system keyboard. UIKit still compiles only on Apple's builders. `eas build` runs `expo prebuild` there, and `plugins/withCaimKeyboard.js` injects the Swift keyboard extension (sources, extension target, `RequestsOpenAccess`, App Group `group.com.caim.keyboard`, and the local package `Packages/CAImKeyboardCore`). A paid Apple Developer Program membership is required for an internal device install.
+
+1. `npm i -g eas-cli` (or use `npx eas-cli` in place of `eas` below).
+2. `eas login`
+3. `eas device:create` (registers the iPhone). If this repo is not linked to Expo yet, run `eas init` first so `app.json` gets `extra.eas.projectId`.
+4. `eas build --platform ios --profile preview` (or `--profile development`). Sign in with the Apple Developer account that should sign `com.caim.keyboard`, and allow App Group `group.com.caim.keyboard` when EAS asks.
+5. Install the link / QR on the phone, then Settings → General → Keyboard → Keyboards → add CAIm. Turn on Allow Full Access. Open the CAIm app and save the xAI API key so it is copied into the App Group.
+
+`preview` is an internal release build with the keyboard embedded. `development` is that same native extension plus `expo-dev-client`.
 
 ```sh
 npx expo prebuild --platform ios
 ```
 
-The config plugin `plugins/withCAImKeyboardExtension.js` copies `targets/CAImKeyboardExtension/` into `ios/CAImKeyboardExtension/`.
+On Linux, prebuild stops before CocoaPods and Xcode. EAS Build is the command that produces the iPhone binary. The extension calls `CAImKeyboardCore` through `KeyboardEngineAdapter`.
 
-Then on a Mac with Xcode + Apple Developer:
-
-1. Open the generated iOS project in Xcode.
-2. Add a **Custom Keyboard Extension** target (or attach the copied Swift sources).
-3. Add the local package `Packages/CAImKeyboardCore` to that target (`../Packages/CAImKeyboardCore` from the `ios/` folder). The extension calls this engine through `KeyboardEngineAdapter`.
-4. Use the provided `Info.plist` (`RequestsOpenAccess` = true).
-5. Enable App Group `group.com.caim.keyboard` on host + extension.
-6. Run on a **physical device**, then enable the keyboard under **Settings → General → Keyboard → Keyboards**, and turn on **Allow Full Access** for Grok network calls.
-
-See `targets/CAImKeyboardExtension/README.md` for file-level detail.
+See `targets/CAImKeyboardExtension/README.md` for the Swift files.
 
 ## Project layout
 
@@ -80,8 +79,10 @@ components/keyboard/         In-app Expo keyboard UI
 lib/grok/                    xAI client, parse, offline fallback
 lib/settings.ts              SecureStore API key + prefs
 Packages/CAImKeyboardCore/      Pure Swift engine (`swift test` on Linux)
-targets/CAImKeyboardExtension/   UIKit keyboard extension (Xcode only)
-plugins/withCAImKeyboardExtension.js
+targets/CAImKeyboardExtension/   UIKit keyboard; EAS embeds it and links the core package
+plugins/withCaimKeyboard.js  Expo config plugin (pbxproj, entitlements, App Group)
+modules/caim-app-group/      Host App Group writer for the xAI API key
+eas.json                     preview + development iOS device profiles
 __tests__/                   Jest unit tests
 ```
 

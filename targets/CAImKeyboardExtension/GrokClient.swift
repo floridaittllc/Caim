@@ -7,7 +7,7 @@ import CAImKeyboardCore
 final class GrokKeyboardClient {
     static let shared = GrokKeyboardClient()
 
-    /// App Group id — must match the Expo host app entitlements after prebuild.
+    /// App Group id — must match the host app entitlement and CaimAppGroup module.
     private let appGroupId = "group.com.caim.keyboard"
     private let apiKeyDefaultsKey = "xai_api_key"
 

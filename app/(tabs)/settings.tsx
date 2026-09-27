@@ -143,15 +143,13 @@ export default function SettingsScreen() {
         })}
       </View>
 
-      <Text style={styles.section}>System keyboard (iOS)</Text>
+      <Text style={styles.section}>System keyboard (iPhone)</Text>
       <Text style={styles.help}>
-        Expo cannot install as an iOS system keyboard by itself. After{' '}
-        <Text style={styles.mono}>npx expo prebuild</Text>, open the iOS project
-        in Xcode, add the target under{' '}
-        <Text style={styles.mono}>targets/CAImKeyboardExtension</Text> (or use
-        the config plugin), enable App Groups + Full Access, then run on a
-        device with an Apple Developer account. Enable the keyboard in Settings
-        → General → Keyboard → Keyboards.
+        The CAIm system keyboard ships inside the native iOS build (EAS preview
+        or development), not Expo Go. Install that build, then open Settings →
+        General → Keyboard → Keyboards → Add New Keyboard → CAIm. Turn on Allow
+        Full Access so this API key can reach the keyboard through App Group{' '}
+        <Text style={styles.mono}>group.com.caim.keyboard</Text>.
       </Text>
     </ScrollView>
   );

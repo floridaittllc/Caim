@@ -10,6 +10,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.caim.keyboard",
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.caim.keyboard"
+        ]
+      },
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
@@ -42,7 +47,8 @@
         }
       ],
       "expo-secure-store",
-      "./plugins/withCAImKeyboardExtension.js"
+      "expo-dev-client",
+      "./plugins/withCaimKeyboard.js"
     ],
     "experiments": {
       "typedRoutes": true
