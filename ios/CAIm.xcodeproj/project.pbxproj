@@ -11,13 +11,16 @@
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		29566C2A8BFE4EF29F41CC6E /* CAImKeyboardExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = C67929B9482D49158F9A9B2D /* CAImKeyboardExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		16052B6DA40E45B28918D222 /* GrokClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 613D20C57EB340C5892CD3F7 /* GrokClient.swift */; };
-		DEA100F25C2B46F3BDC1BB07 /* KeyboardEngineAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F277AFFDF349BABEC7B989 /* KeyboardEngineAdapter.swift */; };
-		3798DAEE29F246EBBA7D4D1B /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB59AD4373A4C17AC731349 /* KeyboardView.swift */; };
-		204020C5E75643818563043C /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A932D00B7D2946FE982C68B1 /* KeyboardViewController.swift */; };
-		29C026888DA344BABDB2418F /* CaimCoreLinkage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7468EFEED148CBA02DCB0E /* CaimCoreLinkage.swift */; };
-		0776CCD25D58488E8D8CEB80 /* CAImKeyboardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 60921AEAFF6742F2BE123574 /* CAImKeyboardCore */; };
+		3DB6A69FE3514AC0A4E355D5 /* CAImKeyboardExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 38D8ABFD5B67461CA216280F /* CAImKeyboardExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B5F522F322ED410CB11AB26F /* GrammarToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0ED205595604EFC88778C21 /* GrammarToolbarView.swift */; };
+		F7022CED1AB34D84A1291BE1 /* KeyboardAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CDD8A90134B48EDB61984C7 /* KeyboardAssistant.swift */; };
+		CF6CF4A292684C9983D28AC0 /* KeyboardEngineAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97BA1236266B4D758543EB08 /* KeyboardEngineAdapter.swift */; };
+		9801A80B49364916A4BC6942 /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2B6650A6FF4E86B47635F2 /* KeyboardView.swift */; };
+		79153AD9C7F84EFDB331286B /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9FF66D513941819B01036F /* KeyboardViewController.swift */; };
+		CCCFA939284E49AF832370A3 /* LocalSpellChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 701E799798F845498AA855F3 /* LocalSpellChecker.swift */; };
+		C18710D592A74D61BD5AB7FC /* OnDeviceGrammarProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F500F651DFDC400F9DA37244 /* OnDeviceGrammarProvider.swift */; };
+		932AD935BD91427699BC8AC6 /* CaimCoreLinkage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93C1BD761A0453E8935CAA3 /* CaimCoreLinkage.swift */; };
+		DDDA7B65F4824DE79C76C6E2 /* CAImKeyboardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6F5232BBCD26431394190183 /* CAImKeyboardCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,14 +32,17 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = CAIm/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* CAIm-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "CAIm-Bridging-Header.h"; path = "CAIm/CAIm-Bridging-Header.h"; sourceTree = "<group>"; };
-		C67929B9482D49158F9A9B2D /* CAImKeyboardExtension.appex */ = {isa = PBXFileReference; name = "CAImKeyboardExtension.appex"; path = "CAImKeyboardExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; };
-		613D20C57EB340C5892CD3F7 /* GrokClient.swift */ = {isa = PBXFileReference; name = "GrokClient.swift"; path = "GrokClient.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
-		31F277AFFDF349BABEC7B989 /* KeyboardEngineAdapter.swift */ = {isa = PBXFileReference; name = "KeyboardEngineAdapter.swift"; path = "KeyboardEngineAdapter.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
-		5DB59AD4373A4C17AC731349 /* KeyboardView.swift */ = {isa = PBXFileReference; name = "KeyboardView.swift"; path = "KeyboardView.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
-		A932D00B7D2946FE982C68B1 /* KeyboardViewController.swift */ = {isa = PBXFileReference; name = "KeyboardViewController.swift"; path = "KeyboardViewController.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
-		6A7468EFEED148CBA02DCB0E /* CaimCoreLinkage.swift */ = {isa = PBXFileReference; name = "CaimCoreLinkage.swift"; path = "CaimCoreLinkage.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
-		11F076164EDF48F6822A3D6E /* Info.plist */ = {isa = PBXFileReference; name = "Info.plist"; path = "Info.plist"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = text.plist.xml; includeInIndex = 0; };
-		0064EDAD18584F6CB2CDEBAB /* CAImKeyboardExtension.entitlements */ = {isa = PBXFileReference; name = "CAImKeyboardExtension.entitlements"; path = "CAImKeyboardExtension.entitlements"; sourceTree = "<group>"; lastKnownFileType = text.plist.entitlements; includeInIndex = 0; };
+		38D8ABFD5B67461CA216280F /* CAImKeyboardExtension.appex */ = {isa = PBXFileReference; name = "CAImKeyboardExtension.appex"; path = "CAImKeyboardExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; };
+		C0ED205595604EFC88778C21 /* GrammarToolbarView.swift */ = {isa = PBXFileReference; name = "GrammarToolbarView.swift"; path = "GrammarToolbarView.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
+		2CDD8A90134B48EDB61984C7 /* KeyboardAssistant.swift */ = {isa = PBXFileReference; name = "KeyboardAssistant.swift"; path = "KeyboardAssistant.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
+		97BA1236266B4D758543EB08 /* KeyboardEngineAdapter.swift */ = {isa = PBXFileReference; name = "KeyboardEngineAdapter.swift"; path = "KeyboardEngineAdapter.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
+		9E2B6650A6FF4E86B47635F2 /* KeyboardView.swift */ = {isa = PBXFileReference; name = "KeyboardView.swift"; path = "KeyboardView.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
+		5C9FF66D513941819B01036F /* KeyboardViewController.swift */ = {isa = PBXFileReference; name = "KeyboardViewController.swift"; path = "KeyboardViewController.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
+		701E799798F845498AA855F3 /* LocalSpellChecker.swift */ = {isa = PBXFileReference; name = "LocalSpellChecker.swift"; path = "LocalSpellChecker.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
+		F500F651DFDC400F9DA37244 /* OnDeviceGrammarProvider.swift */ = {isa = PBXFileReference; name = "OnDeviceGrammarProvider.swift"; path = "OnDeviceGrammarProvider.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
+		D93C1BD761A0453E8935CAA3 /* CaimCoreLinkage.swift */ = {isa = PBXFileReference; name = "CaimCoreLinkage.swift"; path = "CaimCoreLinkage.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; includeInIndex = 0; };
+		539FCFB7DC7B42CB90F30CD6 /* Info.plist */ = {isa = PBXFileReference; name = "Info.plist"; path = "Info.plist"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = text.plist.xml; includeInIndex = 0; };
+		768EE1FFD69E4111A0D6F40D /* CAImKeyboardExtension.entitlements */ = {isa = PBXFileReference; name = "CAImKeyboardExtension.entitlements"; path = "CAImKeyboardExtension.entitlements"; sourceTree = "<group>"; lastKnownFileType = text.plist.entitlements; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,11 +53,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AE883326040E4C34BF4E16FE /* Frameworks */ = {
+		99A1554613A5450CA2F41515 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0776CCD25D58488E8D8CEB80 /* CAImKeyboardCore in Frameworks */,
+				DDDA7B65F4824DE79C76C6E2 /* CAImKeyboardCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,7 +99,7 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				5CD11A2AA5164D638467E7B9 /* CAImKeyboardExtension */,
+				E419E524291E40F196D0BDCE /* CAImKeyboardExtension */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -104,7 +110,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* CAIm.app */,
-				C67929B9482D49158F9A9B2D /* CAImKeyboardExtension.appex */,
+				38D8ABFD5B67461CA216280F /* CAImKeyboardExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -118,16 +124,19 @@
 			path = CAIm/Supporting;
 			sourceTree = "<group>";
 		};
-		5CD11A2AA5164D638467E7B9 /* CAImKeyboardExtension */ = {
+		E419E524291E40F196D0BDCE /* CAImKeyboardExtension */ = {
 			isa = "PBXGroup";
 			children = (
-				613D20C57EB340C5892CD3F7 /* GrokClient.swift */,
-				31F277AFFDF349BABEC7B989 /* KeyboardEngineAdapter.swift */,
-				5DB59AD4373A4C17AC731349 /* KeyboardView.swift */,
-				A932D00B7D2946FE982C68B1 /* KeyboardViewController.swift */,
-				6A7468EFEED148CBA02DCB0E /* CaimCoreLinkage.swift */,
-				11F076164EDF48F6822A3D6E /* Info.plist */,
-				0064EDAD18584F6CB2CDEBAB /* CAImKeyboardExtension.entitlements */,
+				C0ED205595604EFC88778C21 /* GrammarToolbarView.swift */,
+				2CDD8A90134B48EDB61984C7 /* KeyboardAssistant.swift */,
+				97BA1236266B4D758543EB08 /* KeyboardEngineAdapter.swift */,
+				9E2B6650A6FF4E86B47635F2 /* KeyboardView.swift */,
+				5C9FF66D513941819B01036F /* KeyboardViewController.swift */,
+				701E799798F845498AA855F3 /* LocalSpellChecker.swift */,
+				F500F651DFDC400F9DA37244 /* OnDeviceGrammarProvider.swift */,
+				D93C1BD761A0453E8935CAA3 /* CaimCoreLinkage.swift */,
+				539FCFB7DC7B42CB90F30CD6 /* Info.plist */,
+				768EE1FFD69E4111A0D6F40D /* CAImKeyboardExtension.entitlements */,
 			);
 			name = CAImKeyboardExtension;
 			sourceTree = "<group>";
@@ -144,39 +153,39 @@
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
-				4EA634F022C546518165C503 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
-				2881980EC78D4541B8104542 /* Embed Foundation Extensions */,
+				75805BD6385E4A49A4A065A8 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
+				9A7A7FF760D74A018BF62241 /* Embed Foundation Extensions */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				BB58084782954022A2124EE9 /* PBXTargetDependency */,
+				00F24DC5E373490390EAFD64 /* PBXTargetDependency */,
 			);
 			name = CAIm;
 			productName = CAIm;
 			productReference = 13B07F961A680F5B00A75B9A /* CAIm.app */;
 			productType = "com.apple.product-type.application";
 		};
-		84899DDE5E324B3B85434F2B /* "CAImKeyboardExtension" */ = {
+		868A9D15AFB543E3B1776E4C /* "CAImKeyboardExtension" */ = {
 			isa = PBXNativeTarget;
 			name = "CAImKeyboardExtension";
 			productName = "CAImKeyboardExtension";
-			productReference = C67929B9482D49158F9A9B2D;
+			productReference = 38D8ABFD5B67461CA216280F;
 			productType = "com.apple.product-type.app-extension";
-			buildConfigurationList = AC1459A789474B3385222CCD;
+			buildConfigurationList = D1A7F6D271CD4F3CAF135DD9;
 			buildPhases = (
-				7DA7BDA5A1A947B581AF283D /* Sources */,
-				AE883326040E4C34BF4E16FE /* Frameworks */,
-				B4BED98E64E04C48A473D05D /* Resources */,
+				E2CE06E949644E2689A64D69 /* Sources */,
+				99A1554613A5450CA2F41515 /* Frameworks */,
+				8BD55D618E0F444E90B443ED /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			packageProductDependencies = (
-				60921AEAFF6742F2BE123574 /* CAImKeyboardCore */,
+				6F5232BBCD26431394190183 /* CAImKeyboardCore */,
 			);
 		};
 /* End PBXNativeTarget section */
@@ -190,7 +199,7 @@
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
 					};
-					84899DDE5E324B3B85434F2B = {
+					868A9D15AFB543E3B1776E4C = {
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -209,10 +218,10 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* CAIm */,
-				84899DDE5E324B3B85434F2B /* "CAImKeyboardExtension" */,
+				868A9D15AFB543E3B1776E4C /* "CAImKeyboardExtension" */,
 			);
 			packageReferences = (
-				E082170AC88F4CD9BC27A64D /* XCLocalSwiftPackageReference "CAImKeyboardCore" */,
+				E7D4F558617E4B27AD8BB4AE /* XCLocalSwiftPackageReference "CAImKeyboardCore" */,
 			);
 		};
 /* End PBXProject section */
@@ -228,7 +237,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B4BED98E64E04C48A473D05D /* Resources */ = {
+		8BD55D618E0F444E90B443ED /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -299,7 +308,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CAIm/Pods-CAIm-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		4EA634F022C546518165C503 /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
+		75805BD6385E4A49A4A065A8 /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -358,15 +367,18 @@ fi
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		7DA7BDA5A1A947B581AF283D /* Sources */ = {
+		E2CE06E949644E2689A64D69 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				16052B6DA40E45B28918D222 /* GrokClient.swift in Sources */,
-				DEA100F25C2B46F3BDC1BB07 /* KeyboardEngineAdapter.swift in Sources */,
-				3798DAEE29F246EBBA7D4D1B /* KeyboardView.swift in Sources */,
-				204020C5E75643818563043C /* KeyboardViewController.swift in Sources */,
-				29C026888DA344BABDB2418F /* CaimCoreLinkage.swift in Sources */,
+				B5F522F322ED410CB11AB26F /* GrammarToolbarView.swift in Sources */,
+				F7022CED1AB34D84A1291BE1 /* KeyboardAssistant.swift in Sources */,
+				CF6CF4A292684C9983D28AC0 /* KeyboardEngineAdapter.swift in Sources */,
+				9801A80B49364916A4BC6942 /* KeyboardView.swift in Sources */,
+				79153AD9C7F84EFDB331286B /* KeyboardViewController.swift in Sources */,
+				CCCFA939284E49AF832370A3 /* LocalSpellChecker.swift in Sources */,
+				C18710D592A74D61BD5AB7FC /* OnDeviceGrammarProvider.swift in Sources */,
+				932AD935BD91427699BC8AC6 /* CaimCoreLinkage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -548,7 +560,7 @@ fi
 			};
 			name = Release;
 		};
-		75021BFA02ED47CEA0744E7B /* Debug */ = {
+		7D40783E90354AF580ADEAB6 /* Debug */ = {
 			name = Debug;
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -572,7 +584,7 @@ fi
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 		};
-		3A0F17D8F89B4AFABD5BD607 /* Release */ = {
+		5DBBB30ACC0247EDAE149488 /* Release */ = {
 			name = Release;
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -613,11 +625,11 @@ fi
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AC1459A789474B3385222CCD /* Build configuration list for PBXNativeTarget "CAImKeyboardExtension" */ = {
+		D1A7F6D271CD4F3CAF135DD9 /* Build configuration list for PBXNativeTarget "CAImKeyboardExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				75021BFA02ED47CEA0744E7B /* Debug */,
-				3A0F17D8F89B4AFABD5BD607 /* Release */,
+				7D40783E90354AF580ADEAB6 /* Debug */,
+				5DBBB30ACC0247EDAE149488 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -625,29 +637,29 @@ fi
 /* End XCConfigurationList section */
 
 /* Begin PBXTargetDependency section */
-		BB58084782954022A2124EE9 /* PBXTargetDependency */ = {
+		00F24DC5E373490390EAFD64 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 84899DDE5E324B3B85434F2B /* "CAImKeyboardExtension" */;
-			targetProxy = 34D8F2B0153A4C728B7B1E62 /* PBXContainerItemProxy */;
+			target = 868A9D15AFB543E3B1776E4C /* "CAImKeyboardExtension" */;
+			targetProxy = D58008188D8344CF91193245 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXContainerItemProxy section */
-		34D8F2B0153A4C728B7B1E62 /* PBXContainerItemProxy */ = {
+		D58008188D8344CF91193245 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 84899DDE5E324B3B85434F2B;
+			remoteGlobalIDString = 868A9D15AFB543E3B1776E4C;
 			remoteInfo = "CAImKeyboardExtension";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		2881980EC78D4541B8104542 /* Embed Foundation Extensions */ = {
+		9A7A7FF760D74A018BF62241 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29566C2A8BFE4EF29F41CC6E /* CAImKeyboardExtension.appex in Copy Files */,
+				3DB6A69FE3514AC0A4E355D5 /* CAImKeyboardExtension.appex in Copy Files */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			name = "Embed Foundation Extensions";
@@ -657,16 +669,16 @@ fi
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		E082170AC88F4CD9BC27A64D /* XCLocalSwiftPackageReference "CAImKeyboardCore" */ = {
+		E7D4F558617E4B27AD8BB4AE /* XCLocalSwiftPackageReference "CAImKeyboardCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../Packages/CAImKeyboardCore";
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		60921AEAFF6742F2BE123574 /* CAImKeyboardCore */ = {
+		6F5232BBCD26431394190183 /* CAImKeyboardCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E082170AC88F4CD9BC27A64D /* XCLocalSwiftPackageReference "CAImKeyboardCore" */;
+			package = E7D4F558617E4B27AD8BB4AE /* XCLocalSwiftPackageReference "CAImKeyboardCore" */;
 			productName = "CAImKeyboardCore";
 		};
 /* End XCSwiftPackageProductDependency section */

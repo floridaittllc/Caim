@@ -86,20 +86,43 @@ npx expo prebuild --platform ios --no-install --clean
 
 See `targets/CAImKeyboardExtension/README.md` for the Swift files.
 
+## Background grammar (on-device, RunPod, Grok)
+
+The keyboard checks the sentence before the cursor about 600 ms after you stop
+typing, and new keystrokes cancel a check that is still running. The toolbar
+above the keys shows the issue count and a chip like `libary → library`; tap it
+to apply the fix. `UITextChecker` spelling appears instantly. Model results
+replace it when they arrive.
+
+Providers run in this order, and the next one takes over when one is
+unavailable or fails:
+
+1. **On-device**: Apple Foundation Models (iOS 26, Apple Intelligence devices). Gated and optional.
+2. **Self-hosted**: any OpenAI-compatible endpoint. Use `server/runpod/` to run
+   Qwen2.5-7B-Instruct on RunPod Serverless (scales to zero) or on an always-on Pod.
+3. **Grok**: the xAI key above.
+
+To set it up, deploy with `server/runpod/README.md`. Then in the app, open
+**Settings → Background grammar**, paste the endpoint id or URL and the API key,
+and tap **Test connection**. Network providers need **Allow Full Access** for
+the CAIm keyboard.
+
 ## Project layout
 
 ```
 app/                         Expo Router screens
 components/keyboard/         In-app Expo keyboard UI
 lib/grok/                    xAI client, parse, offline fallback
-lib/settings.ts              SecureStore API key + prefs
+lib/inference/               Self-hosted URL rules, connection test, keyboard AI config
+lib/settings.ts              SecureStore API keys + prefs
+server/runpod/               vLLM grammar backend: prompts, deploy script, Pod image, smoke test
 Packages/CAImKeyboardCore/      Pure Swift engine (`swift test` on Linux)
 targets/CAImKeyboardExtension/   UIKit keyboard; EAS embeds it and links the core package
 plugins/withCaimKeyboard.js  Expo config plugin (pbxproj, entitlements, App Group)
 plugins/withXcodeCloud.js    Writes ios/ci_scripts + CAIm.xcworkspace at prebuild
 ios/                         Generated native project (committed for Xcode Cloud / EAS)
 xcode-cloud/                 Source of ios/ci_scripts/ci_post_clone.sh
-modules/caim-app-group/      Host App Group writer for the xAI API key
+modules/caim-app-group/      Host App Group writer for API keys and keyboard AI settings
 eas.json                     preview, development, production + submit profiles
 __tests__/                   Jest unit tests
 ```
