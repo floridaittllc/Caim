@@ -13,6 +13,7 @@ module.exports = {
         tsconfig: {
           module: 'commonjs',
           esModuleInterop: true,
+          resolveJsonModule: true,
           strict: true,
           types: ['jest', 'node'],
           paths: { '@/*': ['./*'] },

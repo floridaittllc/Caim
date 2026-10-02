@@ -1,7 +1,13 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
 
-export const KEYBOARD_APP_GROUP_ID = 'group.com.caim.keyboard';
-export const KEYBOARD_API_KEY_DEFAULTS_KEY = 'xai_api_key';
+import { KEYBOARD_API_KEY_DEFAULTS_KEY, type KeyboardSharedKey } from './keys';
+
+export {
+  KEYBOARD_API_KEY_DEFAULTS_KEY,
+  KEYBOARD_APP_GROUP_ID,
+  KEYBOARD_SHARED_KEYS,
+  type KeyboardSharedKey,
+} from './keys';
 
 type CaimAppGroupNative = {
   setSharedValue(key: string, value: string): void;
@@ -18,15 +24,24 @@ function loadNative(): CaimAppGroupNative | null {
 
 const native = loadNative();
 
-/** Publish the xAI key into the keyboard extension App Group. No-op off iOS. */
-export function syncSharedApiKey(apiKey: string | null | undefined): void {
+/** Write (or remove, for empty values) keys in the keyboard App Group. No-op off iOS. */
+export function syncSharedValues(
+  values: Partial<Record<KeyboardSharedKey, string | null | undefined>>,
+): void {
   if (!native) {
     return;
   }
-  const trimmed = apiKey?.trim() ?? '';
-  if (!trimmed) {
-    native.removeSharedValue(KEYBOARD_API_KEY_DEFAULTS_KEY);
-    return;
+  for (const [key, value] of Object.entries(values)) {
+    const trimmed = value?.trim() ?? '';
+    if (trimmed) {
+      native.setSharedValue(key, trimmed);
+    } else {
+      native.removeSharedValue(key);
+    }
   }
-  native.setSharedValue(KEYBOARD_API_KEY_DEFAULTS_KEY, trimmed);
+}
+
+/** Publish the xAI key into the keyboard extension App Group. No-op off iOS. */
+export function syncSharedApiKey(apiKey: string | null | undefined): void {
+  syncSharedValues({ [KEYBOARD_API_KEY_DEFAULTS_KEY]: apiKey });
 }

@@ -6,7 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { publishStoredApiKeyToKeyboard } from '@/lib/settings';
+import { publishAIConfigToKeyboard, publishStoredApiKeyToKeyboard } from '@/lib/settings';
 import { colors } from '@/lib/theme';
 
 export { ErrorBoundary } from 'expo-router';
@@ -45,6 +45,7 @@ export default function RootLayout() {
     if (loaded) {
       SplashScreen.hideAsync();
       void publishStoredApiKeyToKeyboard();
+      void publishAIConfigToKeyboard();
     }
   }, [loaded]);
 
