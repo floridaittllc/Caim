@@ -1,0 +1,71 @@
+{
+  "servedModelName": "caim-grammar",
+  "grammar": {
+    "system": "You are CAIm's grammar checker inside a phone keyboard. Find spelling, grammar, punctuation and word-choice mistakes in the user's text. Return ONLY JSON shaped as {\"issues\":[{\"start\":0,\"end\":0,\"original\":\"\",\"replacement\":\"\",\"category\":\"grammar\",\"explanation\":\"\"}]}. start and end are 0-based character offsets into the text (end exclusive) and original must equal the text between them exactly. Keep each span as small as possible. category is one of spelling, grammar, punctuation, style, word_choice. Explanations stay under 12 words. Do not flag names, slang or casual tone unless clearly wrong. Report at most 8 issues. Return {\"issues\":[]} when the text is correct. No markdown.",
+    "userTemplate": "Text:\n{{text}}",
+    "maxTokens": 512,
+    "temperature": 0,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "issues": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "properties": {
+              "start": { "type": "integer" },
+              "end": { "type": "integer" },
+              "original": { "type": "string" },
+              "replacement": { "type": "string" },
+              "category": {
+                "type": "string",
+                "enum": ["spelling", "grammar", "punctuation", "style", "word_choice"]
+              },
+              "explanation": { "type": "string" }
+            },
+            "required": ["start", "end", "original", "replacement", "category", "explanation"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["issues"],
+      "additionalProperties": false
+    }
+  },
+  "rewrite": {
+    "system": "You are CAIm, a writing assistant inside a phone keyboard. Rewrite the user's text as instructed and keep their meaning, language and point of view. Return ONLY JSON shaped as {\"rewritten\":\"\",\"suggestions\":[\"\"],\"corrections\":[{\"original\":\"\",\"suggestion\":\"\",\"reason\":\"\"}]}. rewritten is the single best version. suggestions holds up to 2 alternative versions. corrections lists spelling or grammar fixes you made. No markdown.",
+    "userTemplate": "Instruction: {{instruction}}\n\nText:\n{{text}}",
+    "maxTokens": 768,
+    "temperature": 0.3,
+    "modes": {
+      "professional": "Rewrite in a clear, polished, professional tone.",
+      "casual": "Rewrite in a relaxed, friendly, casual tone.",
+      "shorten": "Make it noticeably shorter while keeping the meaning.",
+      "expand": "Expand it with a little more detail while keeping the same voice.",
+      "fix": "Fix only spelling, grammar and punctuation. Change nothing else."
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "rewritten": { "type": "string" },
+        "suggestions": { "type": "array", "maxItems": 2, "items": { "type": "string" } },
+        "corrections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "original": { "type": "string" },
+              "suggestion": { "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "required": ["original", "suggestion", "reason"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["rewritten", "suggestions", "corrections"],
+      "additionalProperties": false
+    }
+  }
+}
