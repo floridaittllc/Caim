@@ -262,7 +262,10 @@ describe('withCaimKeyboard file transforms', () => {
       'KeyboardViewController.swift',
       'KeyboardView.swift',
       'KeyboardEngineAdapter.swift',
-      'GrokClient.swift',
+      'KeyboardAssistant.swift',
+      'GrammarToolbarView.swift',
+      'LocalSpellChecker.swift',
+      'OnDeviceGrammarProvider.swift',
     ]) {
       expect(fs.existsSync(path.join(dest, name))).toBe(true);
     }
