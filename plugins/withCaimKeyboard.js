@@ -18,6 +18,7 @@ const EXTENSION_ENTITLEMENTS = 'CAImKeyboardExtension.entitlements';
 const CORE_LINKAGE_SWIFT = 'CaimCoreLinkage.swift';
 const SOURCE_DIR_NAME = path.join('targets', 'CAImKeyboardExtension');
 const PACKAGE_SCAN_ROOTS = ['Packages', 'packages', 'native', 'swift'];
+const EMBED_PHASE_NAME = 'Embed Foundation Extensions';
 
 function extensionBundleIdentifier(hostBundleIdentifier) {
   return `${hostBundleIdentifier}.${EXTENSION_TARGET_NAME}`;
@@ -111,8 +112,8 @@ function ensureKeyboardInfoPlist(destinationPath, sourcePath) {
   parsed.CFBundleExecutable = parsed.CFBundleExecutable || '$(EXECUTABLE_NAME)';
   parsed.CFBundleIdentifier = parsed.CFBundleIdentifier || '$(PRODUCT_BUNDLE_IDENTIFIER)';
   parsed.CFBundleName = parsed.CFBundleName || '$(PRODUCT_NAME)';
-  parsed.CFBundleShortVersionString = parsed.CFBundleShortVersionString || '1.0';
-  parsed.CFBundleVersion = parsed.CFBundleVersion || '1';
+  parsed.CFBundleShortVersionString = parsed.CFBundleShortVersionString || '$(MARKETING_VERSION)';
+  parsed.CFBundleVersion = parsed.CFBundleVersion || '$(CURRENT_PROJECT_VERSION)';
   fs.writeFileSync(destinationPath, `${plist.build(parsed)}\n`);
 }
 
@@ -272,12 +273,19 @@ function markAppexRemoveHeaders(project, productFileRef) {
   }
 }
 
+function findTargetBuildPhase(project, nativeTarget, isa) {
+  const phases = project.hash.project.objects[isa] || {};
+  const ref = (nativeTarget.buildPhases || []).find((phase) => phases[phase.value]);
+  return ref ? phases[ref.value] : null;
+}
+
 function linkCorePackages(project, extensionTargetUuid, corePackages) {
   if (!corePackages || corePackages.length === 0) {
     return;
   }
   const localRefs = ensureObjectSection(project, 'XCLocalSwiftPackageReference');
   const productDeps = ensureObjectSection(project, 'XCSwiftPackageProductDependency');
+  const buildFiles = ensureObjectSection(project, 'PBXBuildFile');
   const projectSection = project.getFirstProject().firstProject;
   if (!projectSection.packageReferences) {
     projectSection.packageReferences = [];
@@ -286,34 +294,129 @@ function linkCorePackages(project, extensionTargetUuid, corePackages) {
   if (!nativeTarget.packageProductDependencies) {
     nativeTarget.packageProductDependencies = [];
   }
+  const frameworksPhase = findTargetBuildPhase(project, nativeTarget, 'PBXFrameworksBuildPhase');
+  if (frameworksPhase && !frameworksPhase.files) {
+    frameworksPhase.files = [];
+  }
 
   for (const corePackage of corePackages) {
-    const packageRefId = project.generateUuid();
+    const quotedPath = `"${corePackage.relativePathFromIos}"`;
     const packageComment = `XCLocalSwiftPackageReference "${path.posix.basename(corePackage.relativePathFromIos)}"`;
-    localRefs[packageRefId] = {
-      isa: 'XCLocalSwiftPackageReference',
-      relativePath: `"${corePackage.relativePathFromIos}"`,
-    };
-    localRefs[`${packageRefId}_comment`] = packageComment;
-    projectSection.packageReferences.push({
-      value: packageRefId,
-      comment: packageComment,
-    });
+    let packageRefId = Object.keys(localRefs).find(
+      (key) =>
+        !key.endsWith('_comment') &&
+        unquote(localRefs[key].relativePath) === corePackage.relativePathFromIos,
+    );
+    if (!packageRefId) {
+      packageRefId = project.generateUuid();
+      localRefs[packageRefId] = {
+        isa: 'XCLocalSwiftPackageReference',
+        relativePath: quotedPath,
+      };
+      localRefs[`${packageRefId}_comment`] = packageComment;
+    }
+    if (!projectSection.packageReferences.some((entry) => entry.value === packageRefId)) {
+      projectSection.packageReferences.push({ value: packageRefId, comment: packageComment });
+    }
 
     for (const productName of corePackage.products) {
-      const productId = project.generateUuid();
-      productDeps[productId] = {
-        isa: 'XCSwiftPackageProductDependency',
-        package: packageRefId,
-        package_comment: packageComment,
-        productName: `"${productName}"`,
-      };
-      productDeps[`${productId}_comment`] = productName;
-      nativeTarget.packageProductDependencies.push({
-        value: productId,
-        comment: productName,
-      });
+      const targetDeps = new Set(nativeTarget.packageProductDependencies.map((entry) => entry.value));
+      let productId = Object.keys(productDeps).find(
+        (key) =>
+          !key.endsWith('_comment') &&
+          targetDeps.has(key) &&
+          productDeps[key].package === packageRefId &&
+          unquote(productDeps[key].productName) === productName,
+      );
+      if (!productId) {
+        productId = project.generateUuid();
+        productDeps[productId] = {
+          isa: 'XCSwiftPackageProductDependency',
+          package: packageRefId,
+          package_comment: packageComment,
+          productName: `"${productName}"`,
+        };
+        productDeps[`${productId}_comment`] = productName;
+        nativeTarget.packageProductDependencies.push({ value: productId, comment: productName });
+      }
+
+      // Xcode only links an SPM product when the target's Frameworks phase references it.
+      if (frameworksPhase) {
+        const alreadyLinked = frameworksPhase.files.some(
+          (entry) => buildFiles[entry.value] && buildFiles[entry.value].productRef === productId,
+        );
+        if (!alreadyLinked) {
+          const buildFileId = project.generateUuid();
+          buildFiles[buildFileId] = {
+            isa: 'PBXBuildFile',
+            productRef: productId,
+            productRef_comment: productName,
+          };
+          buildFiles[`${buildFileId}_comment`] = `${productName} in Frameworks`;
+          frameworksPhase.files.push({ value: buildFileId, comment: `${productName} in Frameworks` });
+        }
+      }
     }
+  }
+}
+
+function findAppexEmbedPhase(project, hostTarget, productFileRef) {
+  const copyPhases = project.hash.project.objects.PBXCopyFilesBuildPhase || {};
+  const buildFiles = project.pbxBuildFileSection();
+  for (const ref of hostTarget.buildPhases || []) {
+    const phase = copyPhases[ref.value];
+    if (
+      phase &&
+      (phase.files || []).some(
+        (entry) => buildFiles[entry.value] && buildFiles[entry.value].fileRef === productFileRef,
+      )
+    ) {
+      return { ref, phase };
+    }
+  }
+  return null;
+}
+
+// Xcode 15+ reports a dependency cycle when the appex embed phase runs after the
+// React Native / CocoaPods script phases, so keep it directly after Resources.
+function ensureEmbedPhaseOrder(project, extensionTargetUuid) {
+  const host = project.getFirstTarget();
+  const extensionTarget = project.pbxNativeTargetSection()[extensionTargetUuid];
+  if (!host || !extensionTarget) {
+    return;
+  }
+  const hostTarget = host.firstTarget;
+  const found = findAppexEmbedPhase(project, hostTarget, extensionTarget.productReference);
+  if (!found) {
+    return;
+  }
+  found.phase.name = `"${EMBED_PHASE_NAME}"`;
+  found.ref.comment = EMBED_PHASE_NAME;
+  const copyPhases = project.hash.project.objects.PBXCopyFilesBuildPhase;
+  copyPhases[`${found.ref.value}_comment`] = EMBED_PHASE_NAME;
+
+  const phases = hostTarget.buildPhases;
+  phases.splice(phases.indexOf(found.ref), 1);
+  const resources = project.hash.project.objects.PBXResourcesBuildPhase || {};
+  const resourcesIndex = phases.findIndex((phase) => resources[phase.value]);
+  phases.splice(resourcesIndex === -1 ? phases.length : resourcesIndex + 1, 0, found.ref);
+}
+
+function ensureExtensionVersionSettings(project, extensionTargetUuid, options) {
+  const settings = {};
+  if (options.marketingVersion) {
+    settings.MARKETING_VERSION = `"${options.marketingVersion}"`;
+  }
+  if (options.buildNumber) {
+    settings.CURRENT_PROJECT_VERSION = `"${options.buildNumber}"`;
+  }
+  const developmentTeam =
+    options.developmentTeam || hostDeploymentSetting(project, 'DEVELOPMENT_TEAM', null);
+  if (developmentTeam) {
+    settings.DEVELOPMENT_TEAM = developmentTeam;
+  }
+  if (Object.keys(settings).length > 0) {
+    updateTargetBuildSettings(project, extensionTargetUuid, settings);
   }
 }
 
@@ -326,7 +429,12 @@ function injectKeyboardExtension(project, options) {
   const swiftFileNames = options.swiftFileNames || [];
   const corePackages = options.corePackages || [];
 
-  if (findNativeTargetByName(project, EXTENSION_TARGET_NAME)) {
+  const existing = findNativeTargetByName(project, EXTENSION_TARGET_NAME);
+  if (existing) {
+    linkCorePackages(project, existing.uuid, corePackages);
+    ensureEmbedPhaseOrder(project, existing.uuid);
+    ensureExtensionVersionSettings(project, existing.uuid, options);
+    stripUndefined(project.hash);
     return project;
   }
 
@@ -388,6 +496,8 @@ function injectKeyboardExtension(project, options) {
   });
 
   linkCorePackages(project, created.uuid, corePackages);
+  ensureEmbedPhaseOrder(project, created.uuid);
+  ensureExtensionVersionSettings(project, created.uuid, options);
   stripUndefined(project.hash);
   return project;
 }
@@ -447,6 +557,9 @@ function withKeyboardXcodeTarget(config) {
       bundleIdentifier,
       swiftFileNames,
       corePackages,
+      marketingVersion: cfg.version,
+      buildNumber: cfg.ios?.buildNumber || '1',
+      developmentTeam: cfg.ios?.appleTeamId,
     });
     return cfg;
   });

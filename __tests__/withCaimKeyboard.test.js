@@ -3,6 +3,7 @@ const os = require('os');
 const path = require('path');
 const xcode = require('xcode');
 const plist = require('plist');
+const { IOSConfig } = require('@expo/config-plugins');
 
 const {
   APP_GROUP_ID,
@@ -35,6 +36,17 @@ function extensionTarget(project) {
   return nativeTargets(project).find(
     (entry) => String(entry.target.name).replace(/"/g, '') === EXTENSION_TARGET_NAME,
   );
+}
+
+function linkedProducts(project) {
+  const extension = extensionTarget(project);
+  const frameworks = project.hash.project.objects.PBXFrameworksBuildPhase;
+  const phaseRef = extension.target.buildPhases.find((phase) => frameworks[phase.value]);
+  const buildFiles = project.hash.project.objects.PBXBuildFile;
+  return (frameworks[phaseRef.value].files || [])
+    .map((entry) => buildFiles[entry.value])
+    .filter((file) => file && file.productRef)
+    .map((file) => file.productRef_comment);
 }
 
 function phaseFiles(project, phaseUuid) {
@@ -97,10 +109,14 @@ describe('withCaimKeyboard project transform', () => {
 
     const host = reread.getFirstTarget();
     expect(host.firstTarget.buildPhases.length).toBe(hostSourcesBefore + 1);
-    const copyPhaseRef = host.firstTarget.buildPhases.find((phase) =>
-      String(phase.comment).includes('Copy Files'),
+    const copyPhaseRef = host.firstTarget.buildPhases.find(
+      (phase) => phase.comment === 'Embed Foundation Extensions',
     );
     expect(copyPhaseRef).toBeTruthy();
+    const phaseOrder = host.firstTarget.buildPhases.map((phase) => phase.comment);
+    expect(phaseOrder.indexOf('Embed Foundation Extensions')).toBe(
+      phaseOrder.indexOf('Resources') + 1,
+    );
     const copyPhase = reread.hash.project.objects.PBXCopyFilesBuildPhase[copyPhaseRef.value];
     expect(Number(copyPhase.dstSubfolderSpec)).toBe(13);
     const embedded = (copyPhase.files || []).map((file) => file.comment).join(' ');
@@ -143,6 +159,61 @@ describe('withCaimKeyboard project transform', () => {
     expect(serialized).toContain('CaimKeyboardCore');
     const parsed = require('xcode/lib/parser/pbxproj').parse(serialized);
     expect(parsed.project.objects.XCSwiftPackageProductDependency).toBeTruthy();
+    expect(linkedProducts(project)).toEqual(['CaimKeyboardCore']);
+  });
+
+  it('re-running on an existing project keeps one package link and one embed phase', () => {
+    const project = loadProject();
+    const options = {
+      bundleIdentifier: 'com.caim.keyboard',
+      swiftFileNames: ['KeyboardViewController.swift', 'CaimCoreLinkage.swift'],
+      corePackages: [
+        { relativePathFromIos: '../Packages/CAImKeyboardCore', products: ['CAImKeyboardCore'] },
+      ],
+      marketingVersion: '0.2.0',
+      buildNumber: '1',
+    };
+    injectKeyboardExtension(project, options);
+    const first = project.writeSync();
+
+    const reread = xcode.project('/tmp/unused-caim.pbxproj');
+    reread.hash = require('xcode/lib/parser/pbxproj').parse(first);
+    injectKeyboardExtension(reread, options);
+    injectKeyboardExtension(reread, options);
+
+    expect(reread.writeSync()).toBe(first);
+    const objects = reread.hash.project.objects;
+    const realKeys = (section) => Object.keys(section || {}).filter((key) => !key.endsWith('_comment'));
+    expect(realKeys(objects.XCLocalSwiftPackageReference)).toHaveLength(1);
+    expect(realKeys(objects.XCSwiftPackageProductDependency)).toHaveLength(1);
+    expect(reread.getFirstProject().firstProject.packageReferences).toHaveLength(1);
+    expect(linkedProducts(reread)).toEqual(['CAImKeyboardCore']);
+    const embedPhases = reread
+      .getFirstTarget()
+      .firstTarget.buildPhases.filter((phase) => phase.comment === 'Embed Foundation Extensions');
+    expect(embedPhases).toHaveLength(1);
+  });
+
+  it('matches the extension version and team to the host app', () => {
+    const project = loadProject();
+    injectKeyboardExtension(project, {
+      bundleIdentifier: 'com.caim.keyboard',
+      swiftFileNames: ['KeyboardViewController.swift'],
+      marketingVersion: '0.2.0',
+      buildNumber: '7',
+      developmentTeam: 'ABCDE12345',
+    });
+    const extension = extensionTarget(project);
+    const configs = IOSConfig.XcodeUtils.getBuildConfigurationsForListId(
+      project,
+      extension.target.buildConfigurationList,
+    );
+    expect(configs.length).toBe(2);
+    for (const [, config] of configs) {
+      expect(config.buildSettings.MARKETING_VERSION).toBe('"0.2.0"');
+      expect(config.buildSettings.CURRENT_PROJECT_VERSION).toBe('"7"');
+      expect(config.buildSettings.DEVELOPMENT_TEAM).toBe('ABCDE12345');
+    }
   });
 });
 
