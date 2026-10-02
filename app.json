@@ -48,7 +48,8 @@
       ],
       "expo-secure-store",
       "expo-dev-client",
-      "./plugins/withCaimKeyboard.js"
+      "./plugins/withCaimKeyboard.js",
+      "./plugins/withXcodeCloud.js"
     ],
     "experiments": {
       "typedRoutes": true

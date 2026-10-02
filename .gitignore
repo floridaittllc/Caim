@@ -37,8 +37,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# generated native folders
-/ios
+# generated native folder (ios/ is committed so Xcode Cloud can build it)
 /android
 
 # Swift package build
